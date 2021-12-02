@@ -15,30 +15,52 @@
   </head>
   <body>
     <header>
+      <article id='search-bar'>
+        <form>
+          <select name='filter-term'>
+            <option value='all'>All</option>
+            <option value='pants'>Pants</option>
+            <option value='shirts'>Shirts</option>
+            <option value='coats'>Coats</option>
+          </select>
+        </form>
+        <input id='search-term' type='text'>
+        <button id='search-btn' disabled>search</button>
+      </article>
       <nav>
-        </article>
-        <article id='search-bar'>
-          <form>
-            <select name='filter-term'>
-              <option value='pants'>Pants</option>
-              <option value='shirts'>Shirts</option>
-              <option value='coats'>Coats</option>
-            </select>
-          </form>
-          <input id='search-term' type='text'>
-          <button id='search-btn' disabled>search</button>
-        </article>
-
         <button id='home-btn'>Home</button>
         <button id='account-btn'>View Account</button>
         <button id='history-btn'>Returns & Orders</button>
         <button id='shop-btn'>Shopping Cart</button>
       </nav>
-      
     </header>
 
-    <body>
+    <main>
+      <article id='yipper-data'>
+        <section id='home-view'>
+        </section>
 
-    </body>
+        <section id='account-view' class='hidden'>
+        </section>
+
+        <section id='history-view' class='hidden'>
+        </section>
+
+        <section id='cart-view' class='hidden'>
+        </section>
+
+        <!-- new yip view -->
+        <section id='feedback-view' class='hidden'>
+          <h2>Give us Feedback:</h2>
+          <form>
+            <label for='name'>Name</label>
+            <input type='text' id='name' name='name' required>
+            <label for='feedback-input'>What feedback do you have?</label>
+            <input type='text' id='feedback-input' name='full' required>
+            <button>Submit!</button>
+          </form>
+        </section>
+      </article>
+    </main>
   </body>
 </html>
