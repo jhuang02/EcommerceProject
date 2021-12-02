@@ -1,0 +1,13 @@
+header {
+  height: 5vh;
+  background-color: blue;
+}
+
+#search-bar {
+  display: flex;
+}
+
+nav {
+  display: flex;
+  justify-content: space-evenly;
+}
