@@ -37,7 +37,7 @@
     let article = gen("article");
     let text = gen("p");
     text.textContent = "Product " + num;
-    article.appendCHild(text);
+    article.appendChild(text);
     return article;
   }
 
@@ -76,4 +76,4 @@
   function gen(tagName) {
     return document.createElement(tagName);
   }
-});
+})();
