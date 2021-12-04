@@ -10,6 +10,10 @@
   <head>
     <meta charset='utf-8'>
     <title>CSE 154 Final Project: Ecommerce Site</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;500&display=swap"
+      rel="stylesheet">
     <link rel='stylesheet' href='styles.css'>
     <script src='index.js'></script>
   </head>
@@ -31,28 +35,35 @@
         <button id='home-btn'>Home</button>
         <button id='account-btn'>View Account</button>
         <button id='history-btn'>Returns & Orders</button>
-        <button id='shop-btn'>Shopping Cart</button>
+        <button id='cart-btn'>Shopping Cart</button>
       </nav>
     </header>
 
     <main>
-      <article id='yipper-data'>
+
         <section id='home-view'>
+          <h2>Explore Products:</h2>
+          <article id='product-container'>
+          </article>
         </section>
 
         <section id='search-view' class='hidden'>
+          <h2>Results:</h2>
         </section>
 
         <section id='account-view' class='hidden'>
+          <h2>Your Account:</h2>
         </section>
 
         <section id='history-view' class='hidden'>
+          <h2>Your Order History:</h2>
+
         </section>
 
         <section id='cart-view' class='hidden'>
+          <h2>Shopping Cart:</h2>
         </section>
 
-        <!-- new yip view -->
         <section id='feedback-view' class='hidden'>
           <h2>Give us Feedback:</h2>
           <form>
@@ -63,7 +74,7 @@
             <button>Submit!</button>
           </form>
         </section>
-      </article>
+
     </main>
   </body>
 </html>
