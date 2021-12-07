@@ -4,41 +4,94 @@
   window.addEventListener("load", init);
 
   function init() {
-    console.log("HI");
     fetchExploreRandomProducts();
+    // createShoppingCart();
+    changeView('home-view');
 
+    let viewAccountBtn = id('account-btn');
+    let homeBtn = id('home-btn');
+    let submitAccountBtn = id('submit-account-btn');
+    viewAccountBtn.addEventListener('click', viewAccount);
+    submitAccountBtn.addEventListener('click', authenticate);
+    homeBtn.addEventListener('click', viewHome);
+  }
+
+  function viewHome() {
+    changeView('home-view');
+  }
+
+  // function createShoppingCart() {
+  //   let userCart = {}
+  //   if ()
+  //   window.localStorage.setItem('cart', userCart);
+  // }
+
+  function viewAccount() {
+    changeView('account-view');
+  }
+
+  function authenticate() {
+    // implement behavior for signing up
+    let username = id('login-username').value;
+    let password = id('login-password').value;
+    fetch('/ecommerce/authentication?username=' + username + '&password=' + password)
+      .then(statusCheck)
+      .then(res => res.text())
+      .then(res => console.log(res))
+      .catch(handleError);
   }
 
   function fetchExploreRandomProducts() {
-    processExplore();
-    // fetch("/")
-    //   .then(checkStatus)
-    //   .then(resp => resp.json())
-    //   .then(processExplore)
-    //   .catch(handleError);
+    // processExplore();
+    fetch('/ecommerce/products')
+      .then(statusCheck)
+      .then(res => res.json())
+      .then(processExplore)
+      .catch(handleError);
   }
 
   /**
    * Process all the random products returned by the server
    * @param {object} response - the product server data for the random products
    */
-  function processExplore() {
-
-    // placeholder for now
-    for (let i = 0; i < 10; i++) {
-      let productArticle = generateProductArticle(i);
+  function processExplore(res) {
+    console.log(res);
+    res = res['products'];
+    for (let i = 0; i < res.length; i++) {
+      let productArticle = generateProductArticle(res[i]);
       id("home-view").appendChild(productArticle);
     }
-
-
   }
 
-  function generateProductArticle(num) {
+  function generateProductArticle(clothesObject) {
+    let name = clothesObject['name'];
+    let quantity = clothesObject['quantity'];
+    let category = clothesObject['category'];
+    let price = clothesObject['price'];
+
     let article = gen("article");
-    let text = gen("p");
-    text.textContent = "Product " + num;
-    article.appendChild(text);
+    let nameElement = gen("p");
+    let quantityElement = gen("p");
+    let categoryElement = gen("p");
+    let priceElement = gen("p");
+
+    nameElement.textContent = name;
+    quantityElement.textContent = quantity;
+    categoryElement.textContent = category;
+    priceElement.textContent = '$' + price;
+
+    article.appendChild(nameElement);
+    article.appendChild(quantityElement);
+    article.appendChild(categoryElement);
+    article.appendChild(priceElement);
+    article.classList.add('clothing-item');
     return article;
+  }
+
+  function changeView(idOfVisibleView) {
+    let allViews = qsa('#ecommerce-data > section');
+    allViews.forEach(view => view.classList.add('hidden'));
+    id(idOfVisibleView).classList.remove('hidden');
   }
 
   /**
@@ -75,5 +128,32 @@
    */
   function gen(tagName) {
     return document.createElement(tagName);
+  }
+
+  /**
+   * This function checks the status of the response to make sure that the
+   * server responded with an OK
+   * @param {Object} res is a promise object
+   * @returns {Object} another Promise object with the response as the value of the Promise or
+   * throws an error if the response is not ok
+   */
+  async function statusCheck(res) {
+    if (!res.ok) {
+      throw new Error(await res.text());
+    }
+    return res;
+  }
+
+  /**
+   * This function executes whenever there is an error in the fetch. A failure message
+   * element is appended to the activity description.
+   */
+  function handleError(error) {
+    console.log(error);
+    let eccomerceArea = id("ecommerce-data");
+    eccomerceArea.innerHTML = "";
+    let failureMessage = document.createElement("p");
+    failureMessage.textContent = "There was a failure in retrieving data";
+    eccomerceArea.appendChild(failureMessage);
   }
 })();

@@ -36,20 +36,40 @@
     </header>
 
     <main>
-      <article id='yipper-data'>
+      <article id='ecommerce-data'>
         <section id='home-view'>
         </section>
 
         <section id='search-view' class='hidden'>
+          <p>search-view</p>
         </section>
 
         <section id='account-view' class='hidden'>
+          <h2>Login</h2>
+          <form id='login-form'>
+            <label for='login-username'>Username</label>
+            <input type='text' id='login-username' name='login-username' required>
+            <label for='login-password'>Password</label>
+            <input type='text' id='login-password' name='login-password' required>
+          </form>
+          <h2>Sign Up</h2>
+          <form id='signup-form'>
+            <label for='signup-username'>Username</label>
+            <input type='text' id='signup-username' name='signup-username' required>
+            <label for='signup-password'>Password</label>
+            <input type='text' id='signup-password' name='signup-password' required>
+          </form>
+          <button id='submit-account-btn'>Submit!</button>
+          <button>Login</button>
+          <button>Sign Up</button>
         </section>
 
         <section id='history-view' class='hidden'>
+          <p>history-view</p>
         </section>
 
         <section id='cart-view' class='hidden'>
+          <p>cart-view</p>
         </section>
 
         <!-- new yip view -->

@@ -21,3 +21,15 @@ nav {
   align-items: center;
   align-self: center;
 }
+
+.hidden {
+  display: none;
+}
+
+.clothing-item {
+  background-color: #C4C4C0;
+  padding: 1.5vh;
+  border-radius: 10px;
+  font-size: 16pt;
+  margin: 1.5vh;
+}

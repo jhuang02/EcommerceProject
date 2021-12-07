@@ -4,13 +4,29 @@ CREATE TABLE cart (
   FOREIGN KEY(userid) references user(id)
 );
 
-CREATE TABLE cart_item (
+-- CREATE TABLE cart_item (
+--   id INTEGER PRIMARY KEY AUTOINCREMENT,
+--   quantity INTEGER,
+--   productid INTEGER,
+--   cartid INTEGER,
+--   FOREIGN KEY(productid) references product(id),
+--   FOREIGN KEY(cartid) references cart(id)
+-- );
+
+CREATE TABLE session (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  quantity INTEGER,
+  userid INTEGER,
+  FOREIGN KEY(userid) references user(id)
+);
+
+CREATE TABLE shopping (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  sessionid INTEGER,
+  userid INTEGER,
   productid INTEGER,
-  cartid INTEGER,
-  FOREIGN KEY(productid) references product(id),
-  FOREIGN KEY(cartid) references cart(id)
+  FOREIGN KEY(sessionid) references session(id),
+  FOREIGN KEY(userid) references user(id),
+  FOREIGN KEY(productid) references product(id)
 );
 
 CREATE TABLE user (

@@ -26,32 +26,30 @@ const NODE_PORT = 8000;
 
 app.get('/ecommerce/products', async (req, res) => {
   let searchId = req.query.search;
-  if (searchId === undefined) {
-    res.type('text').send(INVALID_PARAMETERS);
-  } else {
-    try {
-      let db = await getDBConnection();
-      let qry;
-      let retrievedData;
-      if (searchId === undefined) {
-        qry = 'SELECT * FROM product;';
-        retrievedData = await db.all(qry);
-      } else {
-        qry = 'SELECT * FROM product WHERE id = ?;';
-        retrievedData = await db.all(qry, searchId);
-      }
-      res.type('json').send({'products': retrievedData});
-      await db.close();
-    } catch (error) {
-      res.type('text').status(SERVER_ERROR)
-        .send(SERVER_ERROR_MSG);
+
+  try {
+    let db = await getDBConnection();
+    let qry;
+    let retrievedData;
+    if (searchId === undefined) {
+      qry = 'SELECT * FROM product;';
+      retrievedData = await db.all(qry);
+    } else {
+      qry = 'SELECT * FROM product WHERE id = ?;';
+      retrievedData = await db.all(qry, searchId);
     }
+    res.type('json').send({'products': retrievedData});
+    await db.close();
+  } catch (error) {
+    res.type('text').status(SERVER_ERROR)
+      .send(SERVER_ERROR_MSG);
   }
 });
 
 app.get('/ecommerce/authentication', async (req, res) => {
-  let username = req.body.username;
-  let password = req.body.password;
+  let username = req.query.username;
+  let password = req.query.password;
+  console.log(username, password);
   res.type('text');
   if (username === undefined || password === undefined) {
     res.status(CLIENT_ERROR)
@@ -74,6 +72,27 @@ app.get('/ecommerce/authentication', async (req, res) => {
   }
 });
 
+app.post('/ecommerce/user/new', async (req, res) => {
+  let username = req.body.username;
+  let password = req.body.password;
+  res.type('text');
+  if (username === undefined || password === undefined) {
+    res.status(CLIENT_ERROR)
+      .send(INVALID_PARAMETERS);
+  } else {
+    try {
+      let db = await getDBConnection();
+      let qry = 'INSERT INTO user (username, password) VALUES (?, ?);';
+      await db.run(qry, [username, password]);
+      res.send('User added!')
+      await db.close();
+    } catch (error) {
+      res.status(SERVER_ERROR)
+        .send(SERVER_ERROR_MSG);
+    }
+  }
+});
+
 app.post('/ecommerce/purchase', async (req, res) => {
   let item = req.query.item;
   if (item === undefined) {
@@ -82,7 +101,7 @@ app.post('/ecommerce/purchase', async (req, res) => {
   } else {
     try {
       let db = await getDBConnection();
-      let qry = 'Update cart_item SET quantity = quantity + 1';
+      let qry = 'INSERT INTO ';
     } catch (error) {
       res.type('text').status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG)
@@ -128,7 +147,8 @@ app.post('/ecommerce/cart', async (req, res) => {
  */
  async function getDBConnection() {
   const db = await sqlite.open({
-    filename: 'test7.db',
+    // filename: 'test7.db',
+    filename: 'max-approach-laptop.db',
     driver: sqlite3.Database
   });
 
