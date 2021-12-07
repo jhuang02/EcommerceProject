@@ -35,7 +35,7 @@ app.get('/ecommerce/products', async (req, res) => {
       qry = 'SELECT * FROM product;';
       retrievedData = await db.all(qry);
     } else {
-      qry = 'SELECT * FROM product WHERE id = ?;';
+      qry = 'SELECT * FROM product WHERE name = ?;';
       retrievedData = await db.all(qry, searchId);
     }
     res.type('json').send({'products': retrievedData});
@@ -62,7 +62,7 @@ app.get('/ecommerce/authentication', async (req, res) => {
       if (retrievedData[0]['COUNT(*)'] === 0) {
         res.send('failed');
       } else {
-        res.send('confirmed');
+        res.send('verified');
       }
       await db.close();
     } catch (error) {
@@ -95,13 +95,14 @@ app.post('/ecommerce/user/new', async (req, res) => {
 
 app.post('/ecommerce/purchase', async (req, res) => {
   let item = req.query.item;
+  let userId = req.query.userId;
   if (item === undefined) {
     res.type('text').status(SERVER_ERROR)
       .send(INVALID_PARAMETERS);
   } else {
     try {
       let db = await getDBConnection();
-      let qry = 'INSERT INTO ';
+      let qry = 'INSERT INTO shopping ()';
     } catch (error) {
       res.type('text').status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG)
@@ -138,7 +139,6 @@ app.post('/ecommerce/cart', async (req, res) => {
     }
   }
 });
-
 
 /**
  * This function creates a connection to the sqlite database and returns a database object
