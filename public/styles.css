@@ -11,9 +11,31 @@ header {
   justify-content: space-around;
 }
 
+p, h2, button, form, select{
+  font-family: 'Poppins', sans-serif;
+}
+
 #search-bar {
   display: flex;
 }
+
+.hidden {
+  display: none;
+}
+
+#product-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.product-img {
+  height: 120px;
+  width: auto;
+}
+
+
 
 nav {
   display: flex;
