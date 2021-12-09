@@ -20,7 +20,6 @@
     let cartBtn = id('cart-btn');
     let submitAccountBtn = id('submit-account-btn');
     let toggleSaveBtn = id('save-user-toggle');
-    let cartBtn = id('cart-btn');
     viewAccountBtn.addEventListener('click', viewAccount);
     ordersBtn.addEventListener('click', viewOrders);
     submitAccountBtn.addEventListener('click', authenticate);
