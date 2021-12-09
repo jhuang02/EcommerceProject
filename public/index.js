@@ -8,11 +8,16 @@
 
   function init() {
     fetchAllProducts();
-    // createShoppingCart();
+    createShoppingCart();
     changeView('home-view');
-    let homeBtn = id('home-btn');
+    buttonBehavior();
+  }
+
+  function buttonBehavior() {
     let viewAccountBtn = id('account-btn');
     let ordersBtn = id('history-btn');
+    let homeBtn = id('home-btn');
+    let cartBtn = id('cart-btn');
     let submitAccountBtn = id('submit-account-btn');
     let toggleSaveBtn = id('save-user-toggle');
     let cartBtn = id('cart-btn');
@@ -20,19 +25,42 @@
     ordersBtn.addEventListener('click', viewOrders);
     submitAccountBtn.addEventListener('click', authenticate);
     toggleSaveBtn.addEventListener('click', toggleSaveUser);
-    homeBtn.addEventListener('click', viewHome);
+    homeBtn.addEventListener('click', () => changeView('home-view'));
     cartBtn.addEventListener('click', viewCart);
   }
 
-  function viewHome() {
-    changeView('home-view');
+  function viewCart() {
+    changeView('cart-view');
+    let cartView = id('cart-view');
+    cartView.innerHTML = '';
+    let userCart = JSON.parse(window.localStorage.getItem('cart'));
+    let totalCost = 0;
+    Object.keys(userCart).forEach(item => {
+      let article = gen('article');
+      let name = gen('p');
+      let qt = gen('p');
+      name.textContent = item;
+      qt.textContent = userCart[item];
+      article.appendChild(name);
+      article.appendChild(qt);
+      // need to implement this
+      totalCost += 0;
+      article.classList.add('clothing-item');
+      cartView.appendChild(article);
+    });
+    let priceElement = gen('p');
+    priceElement.textContent = 'total cost: ' + totalCost;
+    cartView.append(priceElement);
   }
 
-  // function createShoppingCart() {
-  //   let userCart = {}
-  //   if ()
-  //   window.localStorage.setItem('cart', userCart);
-  // }
+  function createShoppingCart() {
+    let userCart = JSON.parse(window.localStorage.getItem('cart'));
+    if (userCart === null) {
+      userCart = {}
+    }
+
+    window.localStorage.setItem('cart', JSON.stringify(userCart));
+  }
 
   function viewAccount() {
     changeView('account-view');
@@ -121,21 +149,30 @@
     let category = clothesObject['category'];
     let price = clothesObject['price'];
 
-    let article = gen("article");
-    let nameElement = gen("p");
-    let quantityElement = gen("p");
-    let categoryElement = gen("p");
-    let priceElement = gen("p");
+    let article = gen('article');
+    let nameElement = gen('p');
+    let quantityElement = gen('p');
+    let categoryElement = gen('p');
+    let priceElement = gen('p');
+    let buyBtn = gen('button');
 
     nameElement.textContent = name;
-    quantityElement.textContent = quantity;
+    quantityElement.textContent = 'QT: ' + quantity;
     categoryElement.textContent = category;
     priceElement.textContent = '$' + price;
+    buyBtn.textContent = 'Add to Cart!';
+
+    // test this case later
+    buyBtn.addEventListener('click', purchaseItem);
+    if (quantity == 0) {
+      buyBtn.disabled = true;
+    }
 
     article.appendChild(nameElement);
     article.appendChild(quantityElement);
     article.appendChild(categoryElement);
     article.appendChild(priceElement);
+    article.appendChild(buyBtn);
     article.classList.add('clothing-item');
     return article;
   }
@@ -152,6 +189,34 @@
     } else {
       search.disabled = false;
     }
+  }
+  function purchaseItem(event) {
+    let cart = JSON.parse(window.localStorage.getItem('cart'));
+    let productName = event.target.parentElement.firstElementChild.textContent;
+    console.log(productName);
+    fetch('/ecommerce/purchase?productName=' + productName, {method: 'POST'})
+      .then(statusCheck)
+      .then(res => res.json())
+      .then(res => {
+        event.target.parentElement.childNodes[1].textContent = 'QT: ' + res['quantity'];
+        if (res['quantity'] == 0) {
+          event.target.disabled = true;
+        }
+
+        if (cart[res['name']] === undefined) {
+          cart[res['name']] = 1;
+        } else {
+          cart[res['name']] += 1;
+        }
+        window.localStorage.setItem('cart', JSON.stringify(cart));
+      })
+      .catch(handleError);
+  }
+
+  function changeView(idOfVisibleView) {
+    let allViews = qsa('#ecommerce-data > section');
+    allViews.forEach(view => view.classList.add('hidden'));
+    id(idOfVisibleView).classList.remove('hidden');
   }
 
   /**
