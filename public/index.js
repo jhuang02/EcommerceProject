@@ -3,8 +3,8 @@
 (function() {
   window.addEventListener("load", init);
 
-  const USER = '';
-  const PASS = '';
+  let USER;
+  let PASS;
 
   function init() {
     fetchAllProducts();
@@ -62,14 +62,21 @@
   }
 
   function viewAccount() {
-    changeView('account-view');
-    prefillUser();
+    if (!USER & !PASS) {
+      changeView('login-view');
+    } else {
+      changeView('login-success-view');
+      prefillUser();
+    }
   }
   function viewOrders() {
     changeView('history-view');
   }
   function viewCart() {
     changeView('cart-view');
+  }
+  function viewLoginSuccess() {
+    changeView('login-success-view');
   }
 
   function prefillUser() {
@@ -116,6 +123,7 @@
       USER = username;
       PASS = password;
       //more user stuff
+      viewLoginSuccess();
     } else {
       id('incorrect-message').classList.remove('hidden');
     }

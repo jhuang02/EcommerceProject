@@ -33,7 +33,7 @@
       </article>
       <nav>
         <button id='home-btn'>Home</button>
-        <button id='account-btn'>View Account</button>
+        <button id='account-btn'>Login To Account</button>
         <button id='history-btn'>Returns & Orders</button>
         <button id='cart-btn'>Shopping Cart</button>
       </nav>
@@ -51,7 +51,7 @@
           <p>Search Results:</p>
         </section>
 
-        <section id='account-view' class='hidden'>
+        <section id='login-view' class='hidden'>
           <h2>Login</h2>
           <p id = 'incorrect-message' class = 'hidden'>Incorrect password or username!</p>
           <form id='login-form'>
@@ -74,6 +74,12 @@
 
           <button>Login</button>
           <button>Sign Up</button>
+        </section>
+
+        <section id='login-success-view' class='hidden'>
+          <h2>Login in success!</h2>
+          <p>You can now view your order history and checkout!</p>
+          <button>Log Out</button>
         </section>
 
         <section id='history-view' class='hidden'>
