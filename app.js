@@ -46,6 +46,7 @@ app.get('/ecommerce/products', async (req, res) => {
   }
 });
 
+// change this to post by using slides from Tuesday's Quiz Section
 app.get('/ecommerce/authentication', async (req, res) => {
   let username = req.query.username;
   let password = req.query.password;
@@ -94,17 +95,36 @@ app.post('/ecommerce/user/new', async (req, res) => {
 });
 
 app.post('/ecommerce/purchase', async (req, res) => {
-  let item = req.query.item;
-  let userId = req.query.userId;
-  if (item === undefined) {
+  let productName = req.query.productName;
+
+  if (productName === undefined) {
     res.type('text').status(SERVER_ERROR)
       .send(INVALID_PARAMETERS);
   } else {
     try {
       let db = await getDBConnection();
-      let qry = 'INSERT INTO shopping ()';
+      let checkQry = 'SELECT name, quantity FROM product WHERE name = ?;';
+      let updateQry = 'UPDATE product SET quantity = quantity - 1 WHERE name = ?;';
+
+      let checkRes = await db.all(checkQry, productName);
+      if (checkRes[0] === undefined) {
+        res.type('text').status(CLIENT_ERROR)
+          .send('Yikes. Product Name doesn\'t exist!')
+      } else {
+        if (checkRes[0]['quantity'] === 0) {
+          res.type('text').status(CLIENT_ERROR)
+            .send('The quantity of the item is 0')
+        } else {
+
+          checkRes[0]['quantity'] -= 1;
+          await db.run(updateQry, productName);
+          res.type('json').send(checkRes[0]);
+        }
+      }
+
+      await db.close();
     } catch (error) {
-      res.type('text').status(SERVER_ERROR)
+      res.status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG)
     }
   }
