@@ -3,17 +3,25 @@
 (function() {
   window.addEventListener("load", init);
 
+  const USER = '';
+  const PASS = '';
+
   function init() {
-    fetchExploreRandomProducts();
+    fetchAllProducts();
     // createShoppingCart();
     changeView('home-view');
-
-    let viewAccountBtn = id('account-btn');
     let homeBtn = id('home-btn');
+    let viewAccountBtn = id('account-btn');
+    let ordersBtn = id('history-btn');
     let submitAccountBtn = id('submit-account-btn');
+    let toggleSaveBtn = id('save-user-toggle');
+    let cartBtn = id('cart-btn');
     viewAccountBtn.addEventListener('click', viewAccount);
+    ordersBtn.addEventListener('click', viewOrders);
     submitAccountBtn.addEventListener('click', authenticate);
+    toggleSaveBtn.addEventListener('click', toggleSaveUser);
     homeBtn.addEventListener('click', viewHome);
+    cartBtn.addEventListener('click', viewCart);
   }
 
   function viewHome() {
@@ -28,25 +36,69 @@
 
   function viewAccount() {
     changeView('account-view');
+    prefillUser();
+  }
+  function viewOrders() {
+    changeView('history-view');
+  }
+  function viewCart() {
+    changeView('cart-view');
+  }
+
+  function prefillUser() {
+    document.getElementById("login-username").value = window.localStorage.getItem('user');
+  }
+
+  function toggleSaveUser() {
+    let user = window.localStorage.getItem('user');
+    if (user === null) {
+      let username = id('login-username').value;
+      window.localStorage.setItem('user', username);
+    } else {
+      window.localStorage.removeItem('user');
+    }
+  }
+
+  function changeView(idOfVisibleView) {
+    let allViews = qsa('#ecommerce-data > section');
+    allViews.forEach(view => view.classList.add('hidden'));
+    let view = id(idOfVisibleView);
+    view.classList.remove('hidden');
   }
 
   function authenticate() {
     // implement behavior for signing up
     let username = id('login-username').value;
     let password = id('login-password').value;
-    fetch('/ecommerce/authentication?username=' + username + '&password=' + password)
+    let data = new FormData();
+    data.append("username", username);
+    data.append("password", password);
+    fetch('/ecommerce/authentication', {method: "POST", body: data})
       .then(statusCheck)
-      .then(res => res.text())
-      .then(res => console.log(res))
+      .then(resp => resp.text())
+      .then(function(resp) {
+        processAuthentication(resp, username, password);
+      })
       .catch(handleError);
   }
 
-  function fetchExploreRandomProducts() {
-    // processExplore();
+  function processAuthentication(resp, username, password) {
+    if (resp === 'verified') {
+      id('incorrect-message').classList.add('hidden');
+      window.localStorage.setItem('user', username);
+      USER = username;
+      PASS = password;
+      //more user stuff
+    } else {
+      id('incorrect-message').classList.remove('hidden');
+    }
+  }
+
+  function fetchAllProducts() {
     fetch('/ecommerce/products')
       .then(statusCheck)
       .then(res => res.json())
-      .then(processExplore)
+      .then(processAll)
       .catch(handleError);
   }
 
@@ -54,7 +106,7 @@
    * Process all the random products returned by the server
    * @param {object} response - the product server data for the random products
    */
-  function processExplore(res) {
+  function processAll(res) {
     console.log(res);
     res = res['products'];
     for (let i = 0; i < res.length; i++) {
@@ -88,10 +140,18 @@
     return article;
   }
 
-  function changeView(idOfVisibleView) {
-    let allViews = qsa('#ecommerce-data > section');
-    allViews.forEach(view => view.classList.add('hidden'));
-    id(idOfVisibleView).classList.remove('hidden');
+  /**
+   * Check if the search button should be enabled. The button should only be able to be
+   * pressed when there is non whitespace text in the search box
+   */
+  function checkSearchEnable() {
+    let search = id("search-btn");
+    let input = id("search-term").value;
+    if (input.trim() === "") {
+      search.disabled = true;
+    } else {
+      search.disabled = false;
+    }
   }
 
   /**

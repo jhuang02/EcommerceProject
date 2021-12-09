@@ -26,14 +26,15 @@ const NODE_PORT = 8000;
 
 app.get('/ecommerce/products', async (req, res) => {
   let searchId = req.query.search;
-
   try {
     let db = await getDBConnection();
     let qry;
     let retrievedData;
     if (searchId === undefined) {
+      console.log("success");
       qry = 'SELECT * FROM product;';
       retrievedData = await db.all(qry);
+
     } else {
       qry = 'SELECT * FROM product WHERE name = ?;';
       retrievedData = await db.all(qry, searchId);
@@ -46,10 +47,9 @@ app.get('/ecommerce/products', async (req, res) => {
   }
 });
 
-app.get('/ecommerce/authentication', async (req, res) => {
-  let username = req.query.username;
-  let password = req.query.password;
-  console.log(username, password);
+app.post('/ecommerce/authentication', async (req, res) => {
+  let username = req.body.username;
+  let password = req.body.password;
   res.type('text');
   if (username === undefined || password === undefined) {
     res.status(CLIENT_ERROR)

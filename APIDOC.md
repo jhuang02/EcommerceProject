@@ -65,21 +65,21 @@ about the id, name, quantity, category, and price of each product.
 ## Verify if a username, password combination exists in a database
 **Request Format:** /ecommerce/authentication
 
-**Query Parameters:** username, password
+**Body Parameters:** username, password
 
-**Request Type:** GET
+**Request Type:** POST
 
 **Returned Data Format**: Plain Text
 
-**Description:** If the username and password query parameters exist in the 'user database', the endpoint returns the Text 'verified'.
+**Description:** If the username and password body parameters exist in the 'user database', the endpoint returns the Text 'success'.
 If otherwise, the endpoint returns the text 'failed'.
 
-**Example Request:** /ecommerce/authentication?username=Justin&password=12345
+**Example Request:** /ecommerce/user with body parameters username=Justin, password=12345
 
 **Example Response:**
 
 ```
-confirmed
+success
 ```
 
 **Error Handling:**
