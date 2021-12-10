@@ -17,6 +17,7 @@
     let viewAccountBtn = id('account-btn');
     let ordersBtn = id('history-btn');
     let homeBtn = id('home-btn');
+    let homeToggleBtn = id('change-home-view-btn');
     let cartBtn = id('cart-btn');
     let submitAccountBtn = id('submit-account-btn');
     let toggleSaveBtn = id('save-user-toggle');
@@ -25,7 +26,15 @@
     submitAccountBtn.addEventListener('click', authenticate);
     toggleSaveBtn.addEventListener('click', toggleSaveUser);
     homeBtn.addEventListener('click', () => changeView('home-view'));
+    homeToggleBtn.addEventListener('click', toggleHomeView);
     cartBtn.addEventListener('click', viewCart);
+  }
+
+  function toggleHomeView() {
+    let productArray = qsa('.clothing-item');
+    for (let i = 0; i < productArray.length; i++) {
+      productArray[i].classList.toggle('compact');
+    }
   }
 
   function viewCart() {
@@ -157,7 +166,11 @@
     let price = clothesObject['price'];
 
     let article = gen('article');
-    let nameElement = gen('p');
+    let nameElement = gen('button');
+    nameElement.classList.add('product-name-btn');
+    nameElement.addEventListener('click', function() {
+      changeView('product-view')
+    });
     let quantityElement = gen('p');
     let categoryElement = gen('p');
     let priceElement = gen('p');

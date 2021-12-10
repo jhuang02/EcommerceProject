@@ -19,14 +19,6 @@ p, h2, button, form, select{
   display: flex;
 }
 
-
-#product-container {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-}
-
 .product-img {
   height: 120px;
   width: auto;
@@ -51,6 +43,22 @@ nav {
   margin: 1.5vh;
 }
 
+.compact {
+  padding: 0.5vh;
+  border-radius: 10px;
+  font-size: 10pt;
+  margin: 1vh;
+}
+
 #login > p {
   font-size: 10pt;
+}
+
+.product-name-btn {
+  background: none;
+  border: none;
+}
+
+.product-name-btn:hover {
+  color: blue;
 }
