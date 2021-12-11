@@ -82,7 +82,7 @@ app.post('/ecommerce/user/new', async (req, res) => {
   } else {
     try {
       let db = await getDBConnection();
-      let qry = 'INSERT INTO user (username, password) VALUES (?, ?);';
+      let qry = 'INSERT INTO user (username, password, cartId) VALUES (?, ?, 0);';
       await db.run(qry, [username, password]);
       res.send('User added!')
       await db.close();
