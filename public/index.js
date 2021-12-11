@@ -15,24 +15,56 @@
   function buttonBehavior() {
     let viewAccountBtn = id('account-btn');
     let ordersBtn = id('history-btn');
+    let searchBtn = id('search-btn');
+    let searchInput = id('search-term');
     let homeBtn = id('home-btn');
     let homeToggleBtn = id('change-home-view-btn');
+    let searchToggleBtn = id('change-search-view-btn');
     let cartBtn = id('cart-btn');
     let submitAccountBtn = id('submit-account-btn');
     let signUpBtn = id('signup');
     let toggleSaveBtn = id('save-user-toggle');
     viewAccountBtn.addEventListener('click', viewAccount);
     ordersBtn.addEventListener('click', viewOrders);
+    searchInput.addEventListener('input', checkSearchEnable);
+    searchBtn.addEventListener('click', fetchSearch);
     submitAccountBtn.addEventListener('click', authenticate);
     signUpBtn.addEventListener('click', signup);
     toggleSaveBtn.addEventListener('click', toggleSaveUser);
     homeBtn.addEventListener('click', () => changeView('home-view'));
-    homeToggleBtn.addEventListener('click', toggleHomeView);
+    homeToggleBtn.addEventListener('click', toggleProductView);
+    searchToggleBtn.addEventListener('click', toggleProductView);
     cartBtn.addEventListener('click', viewCart);
   }
 
-  function toggleHomeView() {
-    let productArray = qsa('.clothing-item');
+  function fetchSearch() {
+    let searchTerm = id('search-term').value;
+    fetch('/ecommerce/products?search=' + searchTerm)
+      .then(statusCheck)
+      .then(resp => resp.json())
+      .then(processSearch)
+      .catch(handleError);
+  }
+
+  function processSearch(resp) {
+    let searchTerm = id('search-term');
+    searchTerm.value = '';
+
+    let results = id('result-container');
+    while (results.firstChild) {
+      results.removeChild(results.firstChild);
+    }
+
+    resp = resp.products;
+    for (let i = 0; i < resp.length; i++) {
+      let productArticle = generateProductArticle(resp[i]);
+      results.appendChild(productArticle);
+    }
+    changeView('search-view');
+  }
+
+  function toggleProductView() {
+    let productArray = qsa('.product');
     for (let i = 0; i < productArray.length; i++) {
       productArray[i].classList.toggle('compact');
     }
@@ -64,40 +96,44 @@
   }
 
   function viewCart() {
-    changeView('cart-view');
-    console.log('test');
-    let cartView = id('cart-view');
-    cartView.innerHTML = '';
-    let userCart = JSON.parse(window.localStorage.getItem(USER));
-    if (userCart === null) {
-      userCart = {}
-    }
-    let totalCost = 0;
-    Object.keys(userCart).forEach(item => {
+    if (!USER & !PASS) {
+      changeView('cart-not-logged-view');
+    } else {
+      changeView('cart-view');
+      let cartView = id('cart-view');
+      cartView.innerHTML = '';
+      let userCart = JSON.parse(window.localStorage.getItem(USER));
+      if (userCart === null) {
+        userCart = {}
+      }
+      let totalCost = 0;
+      Object.keys(userCart).forEach(item => {
 
-      let article = gen('article');
-      let name = gen('p');
-      let qt = gen('p');
-      let productPrice = gen('p');
-      name.textContent = 'Item: ' + item;
-      let itemQuantity = userCart[item]['quantity'];
-      let itemPrice = userCart[item]['quantity'] * userCart[item]['price']
-      qt.textContent = 'QT: ' + itemQuantity;
-      productPrice.textContent = 'Price: ' + itemPrice;
-      article.appendChild(name);
-      article.appendChild(qt);
-      article.appendChild(productPrice);
-      totalCost += itemPrice;
-      article.classList.add('clothing-item');
-      cartView.appendChild(article);
-    });
-    let priceElement = gen('p');
-    let checkoutBtn = gen('button');
-    checkoutBtn.textContent = 'Checkout';
-    checkoutBtn.addEventListener('click', checkout);
-    priceElement.textContent = 'total cost: $' + totalCost;
-    cartView.append(priceElement);
-    cartView.appendChild(checkoutBtn);
+        let article = gen('article');
+        let name = gen('p');
+        let qt = gen('p');
+        let productPrice = gen('p');
+        name.textContent = 'Item: ' + item;
+        let itemQuantity = userCart[item]['quantity'];
+        let itemPrice = userCart[item]['quantity'] * userCart[item]['price']
+        qt.textContent = 'QT: ' + itemQuantity;
+        productPrice.textContent = 'Price: ' + itemPrice;
+        article.appendChild(name);
+        article.appendChild(qt);
+        article.appendChild(productPrice);
+        totalCost += itemPrice;
+        article.classList.add('clothing-item');
+        cartView.appendChild(article);
+      });
+      let priceElement = gen('p');
+      let checkoutBtn = gen('button');
+      checkoutBtn.textContent = 'Checkout';
+      checkoutBtn.addEventListener('click', checkout);
+      priceElement.textContent = 'total cost: $' + totalCost;
+      cartView.append(priceElement);
+      cartView.appendChild(checkoutBtn);
+    }
+
   }
 
   function checkout() {
@@ -145,13 +181,17 @@
   function viewAccount() {
     if (!USER & !PASS) {
       changeView('login-view');
+      prefillUser();
     } else {
       changeView('login-success-view');
-      prefillUser();
     }
   }
   function viewOrders() {
-    changeView('history-view');
+    if (!USER & !PASS) {
+      changeView('history-not-logged-view');
+    } else {
+      changeView('history-view');
+    }
   }
 
   function viewLoginSuccess() {
@@ -160,11 +200,15 @@
 
   function prefillUser() {
     document.getElementById("login-username").value = window.localStorage.getItem('user');
+    if ((window.localStorage.getItem('user')) !== null) {
+      id('save-user-toggle').checked = true;
+    }
   }
 
   function toggleSaveUser() {
     let user = window.localStorage.getItem('user');
-    if (user === null) {
+    let toggleBtn = id('save-user-toggle');
+    if (toggleBtn.checked) {
       let username = id('login-username').value;
       window.localStorage.setItem('user', username);
     } else {
@@ -226,7 +270,6 @@
    * @param {object} response - the product server data for the random products
    */
   function processAll(res) {
-    console.log(res);
     res = res['products'];
     for (let i = 0; i < res.length; i++) {
       let productArticle = generateProductArticle(res[i]);
@@ -234,11 +277,11 @@
     }
   }
 
-  function generateProductArticle(clothesObject) {
-    let name = clothesObject['name'];
-    let quantity = clothesObject['quantity'];
-    let category = clothesObject['category'];
-    let price = clothesObject['price'];
+  function generateProductArticle(product) {
+    let name = product['name'];
+    let quantity = product['quantity'];
+    let category = product['category'];
+    let price = product['price'];
 
     let article = gen('article');
     let nameElement = gen('button');
@@ -268,7 +311,7 @@
     article.appendChild(categoryElement);
     article.appendChild(priceElement);
     article.appendChild(buyBtn);
-    article.classList.add('clothing-item');
+    article.classList.add('product');
     return article;
   }
 

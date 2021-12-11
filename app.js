@@ -151,9 +151,9 @@ app.post('/ecommerce/cart', async (req, res) => {
           .send('username doesnt exist.');
       } else {
         let insertQry = 'INSERT INTO shopping (username, productId, cartId, quantity) VALUES (?, ?, ?, ?);';
-        
+
         let retrievedData = await db.run(insertQry, [username, productId, cartId, quantity]);
-        
+
         console.log('lastid:' + retrievedData.lastID);
         res.send((retrievedData.lastID).toString());
       }
