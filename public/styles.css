@@ -43,6 +43,10 @@ nav {
   margin: 1.5vh;
 }
 
+.clothing-item:hover {
+  cursor: pointer;
+}
+
 .cart {
   background-color: turquoise;
 }
@@ -58,11 +62,3 @@ nav {
   font-size: 10pt;
 }
 
-.product-name-btn {
-  background: none;
-  border: none;
-}
-
-.product-name-btn:hover {
-  color: blue;
-}

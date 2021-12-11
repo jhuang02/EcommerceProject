@@ -5,6 +5,7 @@
 
   let USER;
   let PASS;
+  let PRODUCT_ID;
 
   function init() {
     fetchAllProducts();
@@ -22,6 +23,7 @@
     let signUpBtn = id('signup');
     let toggleSaveBtn = id('save-user-toggle');
     let historyBtn = id('history-btn');
+    let feedbackForm = id('feedback-form');
 
     viewAccountBtn.addEventListener('click', viewAccount);
     ordersBtn.addEventListener('click', viewOrders);
@@ -32,6 +34,23 @@
     homeToggleBtn.addEventListener('click', toggleHomeView);
     cartBtn.addEventListener('click', viewCart);
     historyBtn.addEventListener('click', viewHistory);
+    feedbackForm.addEventListener('submit', submitFeedback);
+  }
+
+  function submitFeedback(event) {
+    event.preventDefault();
+    let rating = id('rating').value;
+    let review = id('review').value;
+
+    let params = new FormData();
+    params.append('username', USER);
+    params.append('productId', PRODUCT_ID);
+    params.append('rating', rating);
+    params.append('review', review);
+
+    fetch('/ecommerce/feedback/new', {method: 'POST', body: params})
+      .then(statusCheck)
+      .catch(handleError);
   }
 
   function viewHistory() {
@@ -56,7 +75,7 @@
         orderElement = gen('article');
         orderElement.classList.add('cart');
         let cartIdElement = gen('p');
-        cartIdElement.textContent = 'Cart ID: ' + item['cartId'];
+        cartIdElement.textContent = 'Confirmation Number: ' + item['cartId'];
         orderElement.appendChild(cartIdElement);
         cartId = item['cartId'];
       }
@@ -282,13 +301,10 @@
     let quantity = clothesObject['quantity'];
     let category = clothesObject['category'];
     let price = clothesObject['price'];
+    let id = clothesObject['id'];
 
     let article = gen('article');
-    let nameElement = gen('button');
-    nameElement.classList.add('product-name-btn');
-    nameElement.addEventListener('click', function() {
-      changeView('product-view')
-    });
+    let nameElement = gen('p');
     let quantityElement = gen('p');
     let categoryElement = gen('p');
     let priceElement = gen('p');
@@ -312,7 +328,65 @@
     article.appendChild(priceElement);
     article.appendChild(buyBtn);
     article.classList.add('clothing-item');
+    article.addEventListener('click', viewItem);
+    article.id = id;
     return article;
+  }
+
+  function viewItem(event) {
+    if (event.target.textContent !== 'Add to Cart!') {
+      PRODUCT_ID = this.id;
+      changeView('item-view');
+      fetch('/ecommerce/products?productId=' + this.id)
+        .then(statusCheck)
+        .then(res => res.json())
+        .then(populateItemView)
+        .catch(handleError);
+    }
+  }
+
+  function populateItemView(res) {
+    res = res['products'][0];
+
+    let nameElement = gen('p');
+    let quantityElement = gen('p');
+    let categoryElement = gen('p');
+    let priceElement = gen('p');
+    let feedbackElement = gen('article');
+
+    nameElement.textContent = 'Name: ' + res['name'];
+    quantityElement.textContent = 'Quantity: ' + res['quantity'];
+    categoryElement.textContent = 'Category: ' + res['category'];
+    priceElement.textContent = 'Price: ' + res['price'];
+    fetch('/ecommerce/feedback?productId=' + res['id'])
+    .then(statusCheck)
+    .then(res => res.json())
+    .then(res => {
+      populateFeedback(res, feedbackElement)
+    })
+    .catch(handleError);
+
+    let itemView = id('item-view');
+    itemView.appendChild(nameElement);
+    itemView.appendChild(categoryElement);
+    itemView.appendChild(priceElement);
+    itemView.appendChild(feedbackElement);
+
+  }
+
+  function populateFeedback(res, feedbackElement) {
+    let feedbackReview = gen('article');
+    let ratingElement = gen('p');
+    let reviewElement = gen('p');
+    let usernameElement = gen('p');
+
+    ratingElement.textContent = res['rating'];
+    reviewElement.textContent = res['review'];
+    usernameElement.textContent = res['username'];
+    feedbackReview.appendChild(usernameElement);
+    feedbackReview.appendChild(ratingElement);
+    feedbackReview.appendChild(reviewElement);
+    feedbackElement.appendChild(feedbackReview);
   }
 
   /**

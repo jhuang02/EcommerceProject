@@ -25,21 +25,32 @@ const SERVER_ERROR_MSG = 'An error occurred on the server. Try again later.';
 const NODE_PORT = 8000;
 
 app.get('/ecommerce/products', async (req, res) => {
-  let searchId = req.query.search;
+  let productName = req.query.productName;
+  let productId = req.query.productId;
+  console.log('Parameters: ', productId, productName)
   try {
     let db = await getDBConnection();
-    let qry;
     let retrievedData;
-    if (searchId === undefined) {
-      console.log("success");
+    let qry;
+    if (productName === undefined && productId === undefined) {
       qry = 'SELECT * FROM product;';
       retrievedData = await db.all(qry);
-
+      res.type('json').send({'products': retrievedData});
     } else {
-      qry = 'SELECT * FROM product WHERE name = ?;';
-      retrievedData = await db.all(qry, searchId);
+      if (productName === undefined) {
+        qry = 'SELECT * FROM product WHERE id = ?;';
+        retrievedData = await db.all(qry, productId);
+        res.type('json').send({'products': retrievedData});
+      } else if (productId === undefined) {
+        qry = 'SELECT * FROM product WHERE name = ?;';
+        retrievedData = await db.all(qry, productName);
+        res.type('json').send({'products': retrievedData});
+      } else {
+        res.type('text').status(CLIENT_ERROR)
+          .send('Please search using either Product Name or Product ID!')
+      }
     }
-    res.type('json').send({'products': retrievedData});
+    
     await db.close();
   } catch (error) {
     res.type('text').status(SERVER_ERROR)
@@ -57,13 +68,21 @@ app.post('/ecommerce/authentication', async (req, res) => {
   } else {
     try {
       let db = await getDBConnection();
-      let qry = 'SELECT COUNT(*) FROM user WHERE username = ? and password = ?';
-      let retrievedData = await db.all(qry, [username, password]);
-      if (retrievedData[0]['COUNT(*)'] === 0) {
-        res.send('failed');
+      let getUsernameQry = 'SELECT name from user WHERE name = ?';
+      let retrievedUsername = await db.all(getUsernameQry, username);
+      if (retrievedUsername.length === 0) {
+        res.status(CLIENT_ERROR)
+          .send('Yikes. Username doesn\' exist!');
       } else {
-        res.send('verified');
+        let qry = 'SELECT COUNT(*) FROM user WHERE username = ? and password = ?';
+        let retrievedData = await db.all(qry, [username, password]);
+        if (retrievedData[0]['COUNT(*)'] === 0) {
+          res.send('failed');
+        } else {
+          res.send('verified');
+        }
       }
+
       await db.close();
     } catch (error) {
       res.status(SERVER_ERROR)
@@ -82,9 +101,15 @@ app.post('/ecommerce/user/new', async (req, res) => {
   } else {
     try {
       let db = await getDBConnection();
-      let qry = 'INSERT INTO user (username, password, cartId) VALUES (?, ?, 0);';
-      await db.run(qry, [username, password]);
-      res.send('User added!')
+      if (retrievedProductId.length === 0) {
+        res.status(CLIENT_ERROR)
+          .send('Yikes. Username doesn\' exist!');
+      } else {
+        let qry = 'INSERT INTO user (username, password, cartId) VALUES (?, ?, 0);';
+        await db.run(qry, [username, password]);
+        res.send('User added!')
+      }
+
       await db.close();
     } catch (error) {
       res.status(SERVER_ERROR)
@@ -151,9 +176,7 @@ app.post('/ecommerce/cart', async (req, res) => {
           .send('username doesnt exist.');
       } else {
         let insertQry = 'INSERT INTO shopping (username, productId, cartId, quantity) VALUES (?, ?, ?, ?);';
-        
         let retrievedData = await db.run(insertQry, [username, productId, cartId, quantity]);
-        
         console.log('lastid:' + retrievedData.lastID);
         res.send((retrievedData.lastID).toString());
       }
@@ -175,9 +198,17 @@ app.post('/ecommerce/cart/update', async (req, res) => {
   } else {
     try {
       let db = await getDBConnection();
-      let updateQry = 'UPDATE user SET cartId = cartId + 1 WHERE username = ?';
-      await db.run(updateQry, username);
-      res.send('updated cart');
+      let getUsernameQry = 'SELECT name from user WHERE name = ?';
+      let retrievedUsername = await db.all(getUsernameQry, username);
+      if (retrievedUsername.length === 0) {
+        res.status(CLIENT_ERROR)
+          .send('Yikes. Username doesn\' exist!');
+      } else {
+        let updateQry = 'UPDATE user SET cartId = cartId + 1 WHERE username = ?';
+        await db.run(updateQry, username);
+        res.send('updated cart');
+      }
+
       await db.close()
     } catch (error) {
       console.log(error);
@@ -196,15 +227,85 @@ app.get('/ecommerce/history', async (req, res) => {
   } else {
     try {
       let db = await getDBConnection();
-      let historyQry = 'SELECT s.cartId, s.quantity, p.name FROM shopping as s JOIN product as p on s.productId = p.id WHERE s.username = ? ORDER BY cartId;';
-      let historyRes = await db.all(historyQry, username);
-      res.type('json').send({'history': historyRes});
+      let getUsernameQry = 'SELECT name from user WHERE name = ?';
+      let retrievedUsername = await db.all(getUsernameQry, username);
+      if (retrievedUsername.length === 0) {
+        res.status(CLIENT_ERROR)
+          .send('Yikes. Username doesn\' exist!');
+      } else {
+        let historyQry = 'SELECT s.cartId, s.quantity, p.name FROM shopping as s JOIN product as p on s.productId = p.id WHERE s.username = ? ORDER BY cartId;';
+        let historyRes = await db.all(historyQry, username);
+        res.type('json').send({'history': historyRes});
+      }
+
       await db.close();
     } catch (error) {
       console.log(error);
       res.type('text').status(SERVER_ERROR)
-        .send(SERVER_ERROR_MSG)
+        .send(SERVER_ERROR_MSG);
     }
+  }
+});
+
+app.post('/ecommerce/feedback/new', async (req, res) => {
+  let productId = req.body.productId;
+  let username = req.body.username;
+  let rating = req.body.rating;
+  let review = req.body.review;
+
+  res.type('text')
+
+  if (username === undefined || rating === undefined || review === undefined || productId === undefined) {
+    res.status(CLIENT_ERROR)
+      .send(INVALID_PARAMETERS);
+  } else {
+    try {
+      let db = await getDBConnection();
+      let getProductIdQry = 'SELECT id FROM product WHERE id = ?';
+      let retrievedProductId = await db.all(getProductIdQry, productId);
+      if (retrievedProductId.length === 0) {
+        res.status(CLIENT_ERROR)
+          .send('Yikes. Product ID doesn\' exist!');
+      } else {
+        let getUsernameQry = 'SELECT username FROM user WHERE username = ?';
+        let retrievedUsername = await db.all(getUsernameQry, username);
+        if (retrievedUsername.length === 0) {
+          res.status(CLIENT_ERROR)
+            .send('Yikes. Username doesn\'t exist!');
+        } else {
+          let insertFeedbackQry = 'INSERT INTO feedback (productId, username, rating, review) VALUES (?, ?, ?, ?)';
+          await db.run(insertFeedbackQry, [productId, username, rating, review]);
+          res.send('Successfully inserted feedback!');
+        }
+      }
+      await db.close();
+    } catch (error) {
+      console.log(error);
+      res.status(SERVER_ERROR)
+        .send(SERVER_ERROR_MSG);
+    }
+  }
+});
+
+app.get('/ecommerce/feedback', async (req, res) => {
+  let productId = req.query.productId;
+
+  if (productId === 'undefined') {
+    res.type('text').status(CLIENT_ERROR)
+      .send(INVALID_PARAMETERS);
+  } else {
+    let db = await getDBConnection();
+    let verifyIdQry = 'SELECT * FROM product WHERE id = ?;';
+    let verifyIdRes = await db.run(verifyIdQry, productId);
+    if (verifyIdRes.length === 0) {
+      res.type('text').status(CLIENT_ERROR)
+        .send('Yikes! Product ID does\'t exist.');
+    } else {
+      let getFeedbackQry = 'SELECT * FROM feedback WHERE productId = ?;';
+      let getFeedbackRes = await db.all(getFeedbackQry, productId);
+      res.type('json').send(getFeedbackRes[0]);
+    }
+    await db.close();
   }
 });
 
