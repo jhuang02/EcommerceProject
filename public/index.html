@@ -26,7 +26,7 @@
       <nav>
         <button id='home-btn'>Home</button>
         <button id='account-btn'>Login To Account</button>
-        <button id='history-btn'>Returns & Orders</button>
+        <button id='history-btn'>Order History</button>
         <button id='cart-btn'>Shopping Cart</button>
       </nav>
     </header>
@@ -35,12 +35,12 @@
       <article id='ecommerce-data'>
         <section id='home-view'>
           <form>
-            <select name='filter-term'>
+            <select name='filter-term' id='home-filter'>
               <option value='all'>All</option>
               <option value='pants'>Pants</option>
               <option value='shirts'>Shirts</option>
               <option value='coats'>Coats</option>
-              <option value='coats'>Electronics</option>
+              <option value='electronics'>Electronics</option>
             </select>
           </form>
           <h2>Explore Products:</h2>
@@ -49,12 +49,12 @@
 
         <section id='search-view' class='hidden'>
           <form>
-            <select name='filter-term'>
+            <select name='filter-term' id='search-filter'>
               <option value='all'>All</option>
               <option value='pants'>Pants</option>
               <option value='shirts'>Shirts</option>
               <option value='coats'>Coats</option>
-              <option value='coats'>Electronics</option>
+              <option value='electronics'>Electronics</option>
             </select>
           </form>
           <h2>Search Results:</h2>
@@ -91,7 +91,7 @@
         <section id='login-success-view' class='hidden'>
           <h2>Login successful!</h2>
           <p>You can now view your order history and checkout!</p>
-          <button>Log Out</button>
+          <button id='logout-btn'>Log Out</button>
         </section>
 
         <section id='history-view' class='hidden'>

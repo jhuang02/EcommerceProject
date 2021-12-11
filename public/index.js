@@ -14,7 +14,6 @@
 
   function buttonBehavior() {
     let viewAccountBtn = id('account-btn');
-    let ordersBtn = id('history-btn');
     let searchBtn = id('search-btn');
     let searchInput = id('search-term');
     let homeBtn = id('home-btn');
@@ -25,9 +24,10 @@
     let signUpBtn = id('signup');
     let toggleSaveBtn = id('save-user-toggle');
     let historyBtn = id('history-btn');
-
+    let logoutBtn = id('logout-btn');
+    let homeFilter = id('home-filter');
+    let searchFilter = id('search-filter');
     viewAccountBtn.addEventListener('click', viewAccount);
-    ordersBtn.addEventListener('click', viewOrders);
     searchInput.addEventListener('input', checkSearchEnable);
     searchBtn.addEventListener('click', fetchSearch);
     submitAccountBtn.addEventListener('click', authenticate);
@@ -38,16 +38,55 @@
     searchToggleBtn.addEventListener('click', toggleProductView);
     cartBtn.addEventListener('click', viewCart);
     historyBtn.addEventListener('click', viewHistory);
+    logoutBtn.addEventListener('click', logout);
+    homeFilter.addEventListener('change', function() {
+      filterView('home-filter');
+    });
+    searchFilter.addEventListener('change', function() {
+      filterView('search-filter');
+    });
+  }
+
+  function filterView(view) {
+    let filter = id(view).value;
+    let productArray = qsa('.product');
+    for (let i = 0; i < productArray.length; i++) {
+      productArray[i].classList.remove('hidden');
+    }
+
+    if (filter !== 'all') {
+      for (let i = 0; i < productArray.length; i++) {
+        if (productArray[i].lastChild.previousSibling.previousSibling.textContent !== filter) {
+          console.log(filter);
+          console.log(productArray[i].lastChild.previousSibling.previousSibling.textContent);
+          productArray[i].classList.add('hidden');
+        }
+      }
+    }
+  }
+
+
+  function logout() {
+    USER = null;
+    PASS = null;
+    document.getElementById("login-username").value = '';
+    document.getElementById("login-password").value = '';
+    window.localStorage.removeItem('user');
+    id('save-user-toggle').checked = false;
+    changeView('login-view')
   }
 
   function viewHistory() {
-    changeView('history-view');
-
-    fetch('/ecommerce/history?username=' + USER)
+    if (!USER || !PASS) {
+      changeView('history-not-logged-view');
+    } else {
+      changeView('history-view');
+      fetch('/ecommerce/history?username=' + USER)
       .then(statusCheck)
       .then(res => res.json())
       .then(populateHistoryView)
       .catch(handleError);
+    }
   }
 
   function populateHistoryView(res) {
@@ -139,7 +178,7 @@
   }
 
   function viewCart() {
-    if (!USER & !PASS) {
+    if (!USER || !PASS) {
       changeView('cart-not-logged-view');
     } else {
       changeView('cart-view');
@@ -229,13 +268,6 @@
       changeView('login-success-view');
     }
   }
-  function viewOrders() {
-    if (!USER & !PASS) {
-      changeView('history-not-logged-view');
-    } else {
-      changeView('history-view');
-    }
-  }
 
   function viewLoginSuccess() {
     changeView('login-success-view');
@@ -243,13 +275,12 @@
 
   function prefillUser() {
     document.getElementById("login-username").value = window.localStorage.getItem('user');
-    if ((window.localStorage.getItem('user')) !== null) {
+    if ((window.localStorage.getItem('user') != null)) {
       id('save-user-toggle').checked = true;
     }
   }
 
   function toggleSaveUser() {
-    let user = window.localStorage.getItem('user');
     let toggleBtn = id('save-user-toggle');
     if (toggleBtn.checked) {
       let username = id('login-username').value;
@@ -340,6 +371,7 @@
     nameElement.textContent = name;
     quantityElement.textContent = 'QT: ' + quantity;
     categoryElement.textContent = category;
+    categoryElement.classList.add('category');
     priceElement.textContent = '$' + price;
     buyBtn.textContent = 'Add to Cart!';
 
