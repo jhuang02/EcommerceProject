@@ -43,6 +43,10 @@ nav {
   margin: 1.5vh;
 }
 
+.cart {
+  background-color: turquoise;
+}
+
 .compact {
   padding: 0.5vh;
   border-radius: 10px;

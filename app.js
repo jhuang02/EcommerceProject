@@ -179,10 +179,31 @@ app.post('/ecommerce/cart/update', async (req, res) => {
       await db.run(updateQry, username);
       res.send('updated cart');
       await db.close()
-    } catch(error) {
+    } catch (error) {
       console.log(error);
       res.status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG);
+    }
+  }
+});
+
+app.get('/ecommerce/history', async (req, res) => {
+  let username = req.query.username;
+
+  if (username === undefined) {
+    res.type('text').status(CLIENT_ERROR)
+      .send(INVALID_PARAMETERS);
+  } else {
+    try {
+      let db = await getDBConnection();
+      let historyQry = 'SELECT s.cartId, s.quantity, p.name FROM shopping as s JOIN product as p on s.productId = p.id WHERE s.username = ? ORDER BY cartId;';
+      let historyRes = await db.all(historyQry, username);
+      res.type('json').send({'history': historyRes});
+      await db.close();
+    } catch (error) {
+      console.log(error);
+      res.type('text').status(SERVER_ERROR)
+        .send(SERVER_ERROR_MSG)
     }
   }
 });
