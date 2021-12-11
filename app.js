@@ -3,7 +3,8 @@
  * Date: 12/1/2021
  * Section: CSE 154 AD
  *
- * Description:
+ * Description: Our server side code that returns info for requests such as certain products,
+ * validating a user, shopping cart, etc in our ecommerce website.
  */
 
 'use strict';
@@ -24,6 +25,10 @@ const INVALID_PARAMETERS = 'Missing one or more of the required params.';
 const SERVER_ERROR_MSG = 'An error occurred on the server. Try again later.';
 const NODE_PORT = 8000;
 
+/**
+ * Endpoint for product data, return all products if no search term is given, or else just give
+ * the data for a certain product
+ */
 app.get('/ecommerce/products', async (req, res) => {
   let searchId = req.query.search;
   try {
@@ -47,6 +52,9 @@ app.get('/ecommerce/products', async (req, res) => {
   }
 });
 
+/**
+ * Endpoint for checking if the user is valid in the database
+ */
 app.post('/ecommerce/authentication', async (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
@@ -72,6 +80,9 @@ app.post('/ecommerce/authentication', async (req, res) => {
   }
 });
 
+/**
+ * Endpoint for when a new user signs up, add their data into the database
+ */
 app.post('/ecommerce/user/new', async (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
@@ -93,6 +104,9 @@ app.post('/ecommerce/user/new', async (req, res) => {
   }
 });
 
+/**
+ * Endpoint for when a user purchases a product, reduce quantity of item
+ */
 app.post('/ecommerce/purchase', async (req, res) => {
   let productName = req.query.productName;
 
@@ -129,6 +143,9 @@ app.post('/ecommerce/purchase', async (req, res) => {
   }
 });
 
+/**
+ * Endpoint for adding a product into a shopping cart
+ */
 app.post('/ecommerce/cart', async (req, res) => {
   let username = req.body.username;
   let productId = parseInt(req.body.productId);
@@ -166,6 +183,9 @@ app.post('/ecommerce/cart', async (req, res) => {
   }
 });
 
+/**
+ * Endpoint for adding a product into a shopping cart
+ */
 app.post('/ecommerce/cart/update', async (req, res) => {
   let username = req.query.username;
   res.type('text');
@@ -187,6 +207,9 @@ app.post('/ecommerce/cart/update', async (req, res) => {
   }
 });
 
+/**
+ * Endpoint for getting the order history of a user
+ */
 app.get('/ecommerce/history', async (req, res) => {
   let username = req.query.username;
 
@@ -223,6 +246,9 @@ app.get('/ecommerce/history', async (req, res) => {
   return db;
 }
 
+/** Use files from public folder */
 app.use(express.static('public'));
+
+/** Listen on port 8000 */
 const PORT = process.env.PORT || NODE_PORT;
 app.listen(PORT);

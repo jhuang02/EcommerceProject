@@ -1,3 +1,12 @@
+/*
+ * Names: Justin Yang, Jerry Huang
+ * Date: 12/1/2021
+ * Section: CSE 154 AD
+ *
+ * Description: Our client side code that contains most of the functionality of our ecommerce
+ * website. Features our ecommerce site include a view of all products, functionality to filter
+ * and search for products, log in, view user order history, and add items to a shopping cart
+ */
 "use strict";
 
 (function() {
@@ -6,12 +15,18 @@
   let USER;
   let PASS;
 
+  /**
+   * Loading UI and listeners once page finishes loading
+   */
   function init() {
     fetchAllProducts();
     changeView('home-view');
     buttonBehavior();
   }
 
+  /**
+   * Link buttons with their respective behavior functions
+   */
   function buttonBehavior() {
     let viewAccountBtn = id('account-btn');
     let searchBtn = id('search-btn');
@@ -47,6 +62,20 @@
     });
   }
 
+  /**
+   * Toggle between lazy and compact views
+   */
+  function toggleProductView() {
+    let productArray = qsa('.product');
+    for (let i = 0; i < productArray.length; i++) {
+      productArray[i].classList.toggle('compact');
+    }
+  }
+
+  /**
+   * Add filter functionality based on a dropdown for which products to show
+   * @param {string} view - the view where the filter functionality should apply
+   */
   function filterView(view) {
     let filter = id(view).value;
     let productArray = qsa('.product');
@@ -65,7 +94,10 @@
     }
   }
 
-
+  /**
+   * Add filter functionality based on a dropdown for which products to show
+   * @param {string} view - the view where the filter functionality should apply
+   */
   function logout() {
     USER = null;
     PASS = null;
@@ -76,6 +108,9 @@
     changeView('login-view')
   }
 
+  /**
+   * Change to the history view if logged in and fetch user order history
+   */
   function viewHistory() {
     if (!USER || !PASS) {
       changeView('history-not-logged-view');
@@ -89,6 +124,9 @@
     }
   }
 
+  /**
+   * Change to the history view if logged in and fetch user order history
+   */
   function populateHistoryView(res) {
     res = res['history'];
     console.log(res);
@@ -118,6 +156,9 @@
     id('history-view').appendChild(orderElement);
   }
 
+  /**
+   * Fetch search product data from server
+   */
   function fetchSearch() {
     let searchTerm = id('search-term').value;
     fetch('/ecommerce/products?search=' + searchTerm)
@@ -127,6 +168,10 @@
       .catch(handleError);
   }
 
+  /**
+   * Process the server response for products matching the search term
+   * * @param {object} response - the server response for products
+   */
   function processSearch(resp) {
     let searchTerm = id('search-term');
     searchTerm.value = '';
@@ -144,13 +189,9 @@
     changeView('search-view');
   }
 
-  function toggleProductView() {
-    let productArray = qsa('.product');
-    for (let i = 0; i < productArray.length; i++) {
-      productArray[i].classList.toggle('compact');
-    }
-  }
-
+  /**
+   * Signup and add new user to the server to be added to the database
+   */
   function signup() {
     let username = id('signup-username');
     let password = id('signup-password');
@@ -177,6 +218,9 @@
       .catch(handleError);
   }
 
+  /**
+   * If user is logged in, view their shopping cart
+   */
   function viewCart() {
     if (!USER || !PASS) {
       changeView('cart-not-logged-view');
@@ -218,6 +262,10 @@
 
   }
 
+  /**
+   * User checksout their items, adding it to their order history and removing the item from the
+   * inventory database
+   */
   function checkout() {
     let cart = JSON.parse(window.localStorage.getItem(USER));
 
@@ -255,11 +303,12 @@
           successfullTransaction.remove();
         }, 1000);
       })
-
-
       .catch(handleError);
   }
 
+  /**
+   * Switch to account login view
+   */
   function viewAccount() {
     if (!USER & !PASS) {
       changeView('login-view');
@@ -269,10 +318,16 @@
     }
   }
 
+  /**
+   * Switch to log in success view if successfully logged in
+   */
   function viewLoginSuccess() {
     changeView('login-success-view');
   }
 
+  /**
+   * Fill user name input box if user toggles save username feature
+   */
   function prefillUser() {
     document.getElementById("login-username").value = window.localStorage.getItem('user');
     if ((window.localStorage.getItem('user') != null)) {
@@ -280,6 +335,9 @@
     }
   }
 
+  /**
+   * Save username if user toggles this feature
+   */
   function toggleSaveUser() {
     let toggleBtn = id('save-user-toggle');
     if (toggleBtn.checked) {
@@ -290,6 +348,10 @@
     }
   }
 
+  /**
+   * Change to a certain view
+   * @param {string} idOfVisibleView - the view to switch to
+   */
   function changeView(idOfVisibleView) {
     let allViews = qsa('#ecommerce-data > section');
     allViews.forEach(view => view.classList.add('hidden'));
@@ -297,6 +359,9 @@
     view.classList.remove('hidden');
   }
 
+  /**
+   * Check if user log in is valid
+   */
   function authenticate() {
     // implement behavior for signing up
     let username = id('login-username').value;
@@ -313,6 +378,9 @@
       .catch(handleError);
   }
 
+  /**
+   * If user log in isn't valid, display message, if valid, log them in
+   */
   function processAuthentication(resp, username, password) {
     if (resp === 'verified') {
       id('incorrect-message').classList.add('hidden');
@@ -331,6 +399,9 @@
     }
   }
 
+  /**
+   * Fetch server data for all the products
+   */
   function fetchAllProducts() {
     fetch('/ecommerce/products')
       .then(statusCheck)
@@ -341,7 +412,7 @@
 
   /**
    * Process all the random products returned by the server
-   * @param {object} response - the product server data for the random products
+   * @param {object} response - the product server data all products
    */
   function processAll(res) {
     res = res['products'];
@@ -351,6 +422,10 @@
     }
   }
 
+  /**
+   * Generate all the articles for each product
+   * @param {object} product - the product server data for a product
+   */
   function generateProductArticle(product) {
     let name = product['name'];
     let quantity = product['quantity'];
@@ -361,8 +436,50 @@
     let nameElement = gen('button');
     nameElement.classList.add('product-name-btn');
     nameElement.addEventListener('click', function() {
-      changeView('product-view')
+      changeView('product-view');
+      processProductView(product);
     });
+    // let quantityElement = gen('p');
+    let categoryElement = gen('p');
+    let priceElement = gen('p');
+    let buyBtn = gen('button');
+
+    nameElement.textContent = name;
+    // quantityElement.textContent = 'QT: ' + quantity;
+    categoryElement.textContent = category;
+    categoryElement.classList.add('category');
+    priceElement.textContent = '$' + price;
+    buyBtn.textContent = 'Add to Cart!';
+
+    // test this case later
+    buyBtn.addEventListener('click', purchaseItem);
+    if (quantity == 0) {
+      buyBtn.disabled = true;
+    }
+
+    article.appendChild(nameElement);
+    // article.appendChild(quantityElement);
+    article.appendChild(categoryElement);
+    article.appendChild(priceElement);
+    article.appendChild(buyBtn);
+    article.classList.add('product');
+    return article;
+  }
+
+  /**
+   * Process product data and display in product view
+   * @param {object} product - the product server data for a product
+   */
+  function processProductView(product) {
+    let productView = id('product-view');
+    productView.innerHTML = '';
+    let name = product['name'];
+    let quantity = product['quantity'];
+    let category = product['category'];
+    let price = product['price'];
+
+    let article = gen('article');
+    let nameElement = gen('p');
     let quantityElement = gen('p');
     let categoryElement = gen('p');
     let priceElement = gen('p');
@@ -387,7 +504,7 @@
     article.appendChild(priceElement);
     article.appendChild(buyBtn);
     article.classList.add('product');
-    return article;
+    productView.append(article);
   }
 
   /**
@@ -404,6 +521,9 @@
     }
   }
 
+  /**
+   * Purchase item and add it to the user's order history
+   */
   function purchaseItem(event) {
     if (USER === undefined) {
       id('home-view').classList.add('hidden');
@@ -437,12 +557,6 @@
         })
         .catch(handleError);
     }
-  }
-
-  function changeView(idOfVisibleView) {
-    let allViews = qsa('#ecommerce-data > section');
-    allViews.forEach(view => view.classList.add('hidden'));
-    id(idOfVisibleView).classList.remove('hidden');
   }
 
   /**
