@@ -8,7 +8,6 @@
 
   function init() {
     fetchAllProducts();
-    createShoppingCart();
     changeView('home-view');
     buttonBehavior();
   }
@@ -20,10 +19,12 @@
     let homeToggleBtn = id('change-home-view-btn');
     let cartBtn = id('cart-btn');
     let submitAccountBtn = id('submit-account-btn');
+    let signUpBtn = id('signup');
     let toggleSaveBtn = id('save-user-toggle');
     viewAccountBtn.addEventListener('click', viewAccount);
     ordersBtn.addEventListener('click', viewOrders);
     submitAccountBtn.addEventListener('click', authenticate);
+    signUpBtn.addEventListener('click', signup);
     toggleSaveBtn.addEventListener('click', toggleSaveUser);
     homeBtn.addEventListener('click', () => changeView('home-view'));
     homeToggleBtn.addEventListener('click', toggleHomeView);
@@ -36,38 +37,109 @@
       productArray[i].classList.toggle('compact');
     }
   }
+  function signup() {
+    let username = id('signup-username');
+    let password = id('signup-password');
+
+    let params = new FormData();
+    params.append('username', username.value);
+    params.append('password', password.value);
+
+    fetch('/ecommerce/user/new', {method: "POST", body: params})
+      .then(statusCheck)
+      .then(res => res.text())
+      .then(res => {
+        username.value = '';
+        password.value = ''
+        id('login-view').classList.add('hidden');
+        let createdAccountMsg = gen('p');
+        qs('main').appendChild(createdAccountMsg);
+        createdAccountMsg.textContent = res;
+        setTimeout(() => {
+          id('login-view').classList.remove('hidden');
+          createdAccountMsg.remove()
+        }, 1000)
+      })
+      .catch(handleError);
+  }
 
   function viewCart() {
     changeView('cart-view');
+    console.log('test');
     let cartView = id('cart-view');
     cartView.innerHTML = '';
-    let userCart = JSON.parse(window.localStorage.getItem('cart'));
+    let userCart = JSON.parse(window.localStorage.getItem(USER));
+    if (userCart === null) {
+      userCart = {}
+    }
     let totalCost = 0;
     Object.keys(userCart).forEach(item => {
+
       let article = gen('article');
       let name = gen('p');
       let qt = gen('p');
-      name.textContent = item;
-      qt.textContent = userCart[item];
+      let productPrice = gen('p');
+      name.textContent = 'Item: ' + item;
+      let itemQuantity = userCart[item]['quantity'];
+      let itemPrice = userCart[item]['quantity'] * userCart[item]['price']
+      qt.textContent = 'QT: ' + itemQuantity;
+      productPrice.textContent = 'Price: ' + itemPrice;
       article.appendChild(name);
       article.appendChild(qt);
-      // need to implement this
-      totalCost += 0;
+      article.appendChild(productPrice);
+      totalCost += itemPrice;
       article.classList.add('clothing-item');
       cartView.appendChild(article);
     });
     let priceElement = gen('p');
-    priceElement.textContent = 'total cost: ' + totalCost;
+    let checkoutBtn = gen('button');
+    checkoutBtn.textContent = 'Checkout';
+    checkoutBtn.addEventListener('click', checkout);
+    priceElement.textContent = 'total cost: $' + totalCost;
     cartView.append(priceElement);
+    cartView.appendChild(checkoutBtn);
   }
 
-  function createShoppingCart() {
-    let userCart = JSON.parse(window.localStorage.getItem('cart'));
-    if (userCart === null) {
-      userCart = {}
-    }
+  function checkout() {
+    let cart = JSON.parse(window.localStorage.getItem(USER));
 
-    window.localStorage.setItem('cart', JSON.stringify(userCart));
+    Object.keys(cart).forEach(item => {
+      let params = new FormData();
+      params.append('username', USER);
+      params.append('productId', cart[item]['id']);
+      params.append('quantity', cart[item]['quantity']);
+      fetch('/ecommerce/cart', {method: 'POST', body: params})
+        .then(statusCheck)
+        .then(res => res.text())
+        // what can I do here
+        .then()
+        .catch(handleError);
+    });
+
+    fetch('/ecommerce/cart/update?username=' + USER, {method: "POST"})
+      .then(statusCheck)
+      .then(res => res.text())
+      .then(() => {
+        let cartView = id('cart-view');
+        window.localStorage.setItem(USER, JSON.stringify({}));
+        cartView.innerHTML = '';
+        let successfullTransaction = gen('p');
+        successfullTransaction.textContent = 'Transaction was successfull';
+        qs('main').appendChild(successfullTransaction);
+        setTimeout(() => {
+          let priceElement = gen('p');
+          let checkoutBtn = gen('button');
+          checkoutBtn.textContent = 'Checkout';
+          checkoutBtn.addEventListener('click', checkout);
+          priceElement.textContent = 'total cost: $0';
+          cartView.append(priceElement);
+          cartView.appendChild(checkoutBtn);
+          successfullTransaction.remove();
+        }, 1000);
+      })
+
+
+      .catch(handleError);
   }
 
   function viewAccount() {
@@ -81,9 +153,7 @@
   function viewOrders() {
     changeView('history-view');
   }
-  function viewCart() {
-    changeView('cart-view');
-  }
+
   function viewLoginSuccess() {
     changeView('login-success-view');
   }
@@ -131,6 +201,11 @@
       window.localStorage.setItem('user', username);
       USER = username;
       PASS = password;
+      let cart = JSON.parse(window.localStorage.getItem(USER));
+      if (cart === null) {
+        cart = {}
+      }
+      window.localStorage.setItem(USER, JSON.stringify(cart));
       //more user stuff
       viewLoginSuccess();
     } else {
@@ -210,27 +285,40 @@
       search.disabled = false;
     }
   }
-  function purchaseItem(event) {
-    let cart = JSON.parse(window.localStorage.getItem('cart'));
-    let productName = event.target.parentElement.firstElementChild.textContent;
-    console.log(productName);
-    fetch('/ecommerce/purchase?productName=' + productName, {method: 'POST'})
-      .then(statusCheck)
-      .then(res => res.json())
-      .then(res => {
-        event.target.parentElement.childNodes[1].textContent = 'QT: ' + res['quantity'];
-        if (res['quantity'] == 0) {
-          event.target.disabled = true;
-        }
 
-        if (cart[res['name']] === undefined) {
-          cart[res['name']] = 1;
-        } else {
-          cart[res['name']] += 1;
-        }
-        window.localStorage.setItem('cart', JSON.stringify(cart));
-      })
-      .catch(handleError);
+  function purchaseItem(event) {
+    if (USER === undefined) {
+      id('home-view').classList.add('hidden');
+      let loginFailureMsg = gen('id');
+      loginFailureMsg.textContent = 'Log in to add items to the cart!';
+      qs('main').appendChild(loginFailureMsg);
+      setTimeout(() => {
+        loginFailureMsg.remove()
+        id('home-view').classList.remove('hidden');
+      }, 1000);
+    } else {
+      let cart = JSON.parse(window.localStorage.getItem(USER));
+      let productName = event.target.parentElement.firstElementChild.textContent;
+      console.log(productName);
+      fetch('/ecommerce/purchase?productName=' + productName, {method: 'POST'})
+        .then(statusCheck)
+        .then(res => res.json())
+        .then(res => {
+          event.target.parentElement.childNodes[1].textContent = 'QT: ' + res['quantity'];
+          if (res['quantity'] == 0) {
+            event.target.disabled = true;
+          }
+          console.log(res)
+          if (cart[res['name']] === undefined) {
+            let productData = {'quantity' : 1, 'price': res['price'], 'id': res['id']}
+            cart[res['name']] = productData;
+          } else {
+            cart[res['name']]['quantity'] += 1;
+          }
+          window.localStorage.setItem(USER, JSON.stringify(cart));
+        })
+        .catch(handleError);
+    }
   }
 
   function changeView(idOfVisibleView) {

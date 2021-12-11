@@ -102,7 +102,7 @@ app.post('/ecommerce/purchase', async (req, res) => {
   } else {
     try {
       let db = await getDBConnection();
-      let checkQry = 'SELECT name, quantity FROM product WHERE name = ?;';
+      let checkQry = 'SELECT name, quantity, price, id FROM product WHERE name = ?;';
       let updateQry = 'UPDATE product SET quantity = quantity - 1 WHERE name = ?;';
 
       let checkRes = await db.all(checkQry, productName);
@@ -130,27 +130,55 @@ app.post('/ecommerce/purchase', async (req, res) => {
 });
 
 app.post('/ecommerce/cart', async (req, res) => {
-  let userId = parseInt(req.query.id);
+  let username = req.body.username;
+  let productId = parseInt(req.body.productId);
+  let quantity = parseInt(req.body.quantity);
   res.type('text');
-  if (userId === undefined) {
-    res.status(SERVER_ERROR)
+  if (username === undefined || productId === undefined || quantity === undefined) {
+    res.status(CLIENT_ERROR)
       .send(INVALID_PARAMETERS);
   } else {
     try {
       let db = await getDBConnection();
-      let validUserQry = 'Select id FROM user WHERE id = ?;';
-      console.log('1');
-      let validUser = await db.all(validUserQry, userId);
-      if (validUser[0] === undefined) {
+      let validUserQry = 'Select cartId FROM user WHERE username = ?;';
+      let validProductQry = 'Select id FROM product WHERE id = ?;';
+      let cartId = await db.all(validUserQry, username);
+      let validProduct = await db.all(validProductQry, productId);
+      cartId = cartId[0]['cartId'];
+      console.log(cartId);
+      if (cartId === undefined || validProduct === undefined) {
         res.status(CLIENT_ERROR)
-          .send('user ID doesnt exist.');
+          .send('username doesnt exist.');
       } else {
-        let insertQry = 'INSERT INTO cart (userid, status) VALUES (?, "current");';
-        let retrievedData = await db.run(insertQry, userId);
+        let insertQry = 'INSERT INTO shopping (username, productId, cartId, quantity) VALUES (?, ?, ?, ?);';
+        
+        let retrievedData = await db.run(insertQry, [username, productId, cartId, quantity]);
+        
         console.log('lastid:' + retrievedData.lastID);
         res.send((retrievedData.lastID).toString());
       }
       await db.close();
+    } catch(error) {
+      console.log(error);
+      res.status(SERVER_ERROR)
+        .send(SERVER_ERROR_MSG);
+    }
+  }
+});
+
+app.post('/ecommerce/cart/update', async (req, res) => {
+  let username = req.query.username;
+  res.type('text');
+  if (username === undefined) {
+    res.status(CLIENT_ERROR)
+      .send(INVALID_PARAMETERS)
+  } else {
+    try {
+      let db = await getDBConnection();
+      let updateQry = 'UPDATE user SET cartId = cartId + 1 WHERE username = ?';
+      await db.run(updateQry, username);
+      res.send('updated cart');
+      await db.close()
     } catch(error) {
       console.log(error);
       res.status(SERVER_ERROR)
@@ -166,8 +194,8 @@ app.post('/ecommerce/cart', async (req, res) => {
  */
  async function getDBConnection() {
   const db = await sqlite.open({
-    // filename: 'test7.db',
-    filename: 'max-approach-laptop.db',
+    filename: 'semi-final.db',
+    // filename: 'max-approach-laptop.db',
     driver: sqlite3.Database
   });
 
