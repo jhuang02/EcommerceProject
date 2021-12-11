@@ -21,6 +21,8 @@
     let submitAccountBtn = id('submit-account-btn');
     let signUpBtn = id('signup');
     let toggleSaveBtn = id('save-user-toggle');
+    let historyBtn = id('history-btn');
+
     viewAccountBtn.addEventListener('click', viewAccount);
     ordersBtn.addEventListener('click', viewOrders);
     submitAccountBtn.addEventListener('click', authenticate);
@@ -29,6 +31,46 @@
     homeBtn.addEventListener('click', () => changeView('home-view'));
     homeToggleBtn.addEventListener('click', toggleHomeView);
     cartBtn.addEventListener('click', viewCart);
+    historyBtn.addEventListener('click', viewHistory);
+  }
+
+  function viewHistory() {
+    changeView('history-view');
+
+    fetch('/ecommerce/history?username=' + USER)
+      .then(statusCheck)
+      .then(res => res.json())
+      .then(populateHistoryView)
+      .catch(handleError);
+  }
+
+  function populateHistoryView(res) {
+    res = res['history'];
+    console.log(res);
+    let cartId;
+    let orderElement = gen('article');
+    orderElement.classList.add('cart');
+    res.forEach(item => {
+      if (cartId !== item['cartId']) {
+        id('history-view').appendChild(orderElement);
+        orderElement = gen('article');
+        orderElement.classList.add('cart');
+        let cartIdElement = gen('p');
+        cartIdElement.textContent = 'Cart ID: ' + item['cartId'];
+        orderElement.appendChild(cartIdElement);
+        cartId = item['cartId'];
+      }
+      let itemElement = gen('section');
+      let itemNameElement = gen('p');
+      let itemQuantityElement = gen('p');
+      itemNameElement.textContent = 'Name: ' + item['name'];
+      itemQuantityElement.textContent = 'Quantity: ' + item['quantity'];
+      itemElement.appendChild(itemNameElement);
+      itemElement.appendChild(itemQuantityElement);
+      itemElement.classList.add('clothing-item');
+      orderElement.appendChild(itemElement);
+    });
+    id('history-view').appendChild(orderElement);
   }
 
   function toggleHomeView() {
@@ -37,6 +79,7 @@
       productArray[i].classList.toggle('compact');
     }
   }
+
   function signup() {
     let username = id('signup-username');
     let password = id('signup-password');

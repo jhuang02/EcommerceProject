@@ -1,6 +1,6 @@
 CREATE TABLE shopping (
   username INTEGER,
-  productid INTEGER,
+  productId INTEGER,
   cartId INTEGER,
   quantity INTEGER,
   FOREIGN KEY(productid) references product(id)
