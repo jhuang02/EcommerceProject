@@ -2,7 +2,7 @@
   Name: Justin Yang, Jerry Huang
   Date: 12/1/2021
   Section: CSE 154 AD - Dylan
-  Description:
+  Description: Our HTML code for the structuring of our ecommerce website.
 -->
 
 <!DOCTYPE HTML>
@@ -20,22 +20,13 @@
   <body>
     <header>
       <article id='search-bar'>
-        <form>
-          <select name='filter-term'>
-            <option value='all'>All</option>
-            <option value='pants'>Pants</option>
-            <option value='shirts'>Shirts</option>
-            <option value='coats'>Coats</option>
-            <option value='coats'>Electronics</option>
-          </select>
-        </form>
         <input id='search-term' type='text'>
         <button id='search-btn' disabled>search</button>
       </article>
       <nav>
         <button id='home-btn'>Home</button>
         <button id='account-btn'>Login To Account</button>
-        <button id='history-btn'>Returns & Orders</button>
+        <button id='history-btn'>Order History</button>
         <button id='cart-btn'>Shopping Cart</button>
       </nav>
     </header>
@@ -43,12 +34,34 @@
     <main>
       <article id='ecommerce-data'>
         <section id='home-view'>
+          <form>
+            <select name='filter-term' id='home-filter'>
+              <option value='all'>All</option>
+              <option value='pants'>Pants</option>
+              <option value='shirts'>Shirts</option>
+              <option value='coats'>Coats</option>
+              <option value='electronics'>Electronics</option>
+            </select>
+          </form>
           <h2>Explore Products:</h2>
-          <button id='change-home-view-btn'>Click to toggle between cozy and compact view</button>
+          <button id='change-home-view-btn'>Cozy/compact view</button>
         </section>
 
         <section id='search-view' class='hidden'>
-          <p>Search Results:</p>
+          <form>
+            <select name='filter-term' id='search-filter'>
+              <option value='all'>All</option>
+              <option value='pants'>Pants</option>
+              <option value='shirts'>Shirts</option>
+              <option value='coats'>Coats</option>
+              <option value='electronics'>Electronics</option>
+            </select>
+          </form>
+          <h2>Search Results:</h2>
+          <button id='change-search-view-btn'>Cozy/compact view</button>
+
+          <section id='result-container'>
+          </section>
         </section>
 
         <section id='login-view' class='hidden'>
@@ -72,17 +85,25 @@
             <input type='text' id='signup-password' name='signup-password' required>
           </form>
 
-          <button id='login'>Login</button>
           <button id='signup'>Sign Up</button>
         </section>
 
         <section id='login-success-view' class='hidden'>
           <h2>Login successful!</h2>
           <p>You can now view your order history and checkout!</p>
-          <button>Log Out</button>
+          <button id='logout-btn'>Log Out</button>
         </section>
 
         <section id='history-view' class='hidden'>
+          <p>Your Order History:</p>
+        </section>
+
+        <section id='history-not-logged-view' class='hidden'>
+          <p>Please log in first to use this functionality!</p>
+        </section>
+
+        <section id='product-view' class='hidden'>
+          <p>Product:</p>
         </section>
 
         <section id='cart-view' class='hidden'>
@@ -96,6 +117,18 @@
             <input type='text' id='rating' name='rating' required>
             <label for='review'>What feedback do you have?</label>
             <input type='text' id='review' name='review' required>
+
+        <section id='cart-not-logged-view' class='hidden'>
+          <p>Please log in first to use this functionality!</p>
+        </section>
+
+        <section id='feedback-view' class='hidden'>
+          <h2>Give us Feedback:</h2>
+          <form>
+            <label for='name'>Name</label>
+            <input type='text' id='name' name='name' required>
+            <label for='feedback-input'>What feedback do you have?</label>
+            <input type='text' id='feedback-input' name='full' required>
             <button>Submit!</button>
           </form>
         </section>

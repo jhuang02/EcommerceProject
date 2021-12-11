@@ -1,3 +1,12 @@
+/*
+ * Names: Justin Yang, Jerry Huang
+ * Date: 12/1/2021
+ * Section: CSE 154 AD
+ *
+ * Description: Our client side code that contains most of the functionality of our ecommerce
+ * website. Features our ecommerce site include a view of all products, functionality to filter
+ * and search for products, log in, view user order history, and add items to a shopping cart
+ */
 "use strict";
 
 (function() {
@@ -7,17 +16,25 @@
   let PASS;
   let PRODUCT_ID;
 
+  /**
+   * Loading UI and listeners once page finishes loading
+   */
   function init() {
     fetchAllProducts();
     changeView('home-view');
     buttonBehavior();
   }
 
+  /**
+   * Link buttons with their respective behavior functions
+   */
   function buttonBehavior() {
     let viewAccountBtn = id('account-btn');
-    let ordersBtn = id('history-btn');
+    let searchBtn = id('search-btn');
+    let searchInput = id('search-term');
     let homeBtn = id('home-btn');
     let homeToggleBtn = id('change-home-view-btn');
+    let searchToggleBtn = id('change-search-view-btn');
     let cartBtn = id('cart-btn');
     let submitAccountBtn = id('submit-account-btn');
     let signUpBtn = id('signup');
@@ -25,16 +42,28 @@
     let historyBtn = id('history-btn');
     let feedbackForm = id('feedback-form');
 
+    let logoutBtn = id('logout-btn');
+    let homeFilter = id('home-filter');
+    let searchFilter = id('search-filter');
     viewAccountBtn.addEventListener('click', viewAccount);
-    ordersBtn.addEventListener('click', viewOrders);
+    searchInput.addEventListener('input', checkSearchEnable);
+    searchBtn.addEventListener('click', fetchSearch);
     submitAccountBtn.addEventListener('click', authenticate);
     signUpBtn.addEventListener('click', signup);
     toggleSaveBtn.addEventListener('click', toggleSaveUser);
     homeBtn.addEventListener('click', () => changeView('home-view'));
-    homeToggleBtn.addEventListener('click', toggleHomeView);
+    homeToggleBtn.addEventListener('click', toggleProductView);
+    searchToggleBtn.addEventListener('click', toggleProductView);
     cartBtn.addEventListener('click', viewCart);
     historyBtn.addEventListener('click', viewHistory);
     feedbackForm.addEventListener('submit', submitFeedback);
+    logoutBtn.addEventListener('click', logout);
+    homeFilter.addEventListener('change', function() {
+      filterView('home-filter');
+    });
+    searchFilter.addEventListener('change', function() {
+      filterView('search-filter');
+    });
   }
 
   function submitFeedback(event) {
@@ -51,18 +80,80 @@
     fetch('/ecommerce/feedback/new', {method: 'POST', body: params})
       .then(statusCheck)
       .catch(handleError);
+    logoutBtn.addEventListener('click', logout);
+    homeFilter.addEventListener('change', function() {
+      filterView('home-filter');
+    });
+    searchFilter.addEventListener('change', function() {
+      filterView('search-filter');
+    });
   }
 
-  function viewHistory() {
-    changeView('history-view');
+  /**
+   * Toggle between lazy and compact views
+   */
+  function toggleProductView() {
+    let productArray = qsa('.product');
+    for (let i = 0; i < productArray.length; i++) {
+      productArray[i].classList.toggle('compact');
+    }
+  }
 
-    fetch('/ecommerce/history?username=' + USER)
+  /**
+   * Add filter functionality based on a dropdown for which products to show
+   * @param {string} view - the view where the filter functionality should apply
+   */
+  function filterView(view) {
+    let filter = id(view).value;
+    let productArray = qsa('.product');
+    for (let i = 0; i < productArray.length; i++) {
+      productArray[i].classList.remove('hidden');
+    }
+
+    if (filter !== 'all') {
+      for (let i = 0; i < productArray.length; i++) {
+        if (productArray[i].lastChild.previousSibling.previousSibling.textContent !== filter) {
+          console.log(filter);
+          console.log(productArray[i].lastChild.previousSibling.previousSibling.textContent);
+          productArray[i].classList.add('hidden');
+        }
+      }
+    }
+  }
+
+  /**
+   * Add filter functionality based on a dropdown for which products to show
+   * @param {string} view - the view where the filter functionality should apply
+   */
+  function logout() {
+    USER = null;
+    PASS = null;
+    document.getElementById("login-username").value = '';
+    document.getElementById("login-password").value = '';
+    window.localStorage.removeItem('user');
+    id('save-user-toggle').checked = false;
+    changeView('login-view')
+  }
+
+  /**
+   * Change to the history view if logged in and fetch user order history
+   */
+  function viewHistory() {
+    if (!USER || !PASS) {
+      changeView('history-not-logged-view');
+    } else {
+      changeView('history-view');
+      fetch('/ecommerce/history?username=' + USER)
       .then(statusCheck)
       .then(res => res.json())
       .then(populateHistoryView)
       .catch(handleError);
+    }
   }
 
+  /**
+   * Change to the history view if logged in and fetch user order history
+   */
   function populateHistoryView(res) {
     res = res['history'];
     console.log(res);
@@ -92,13 +183,42 @@
     id('history-view').appendChild(orderElement);
   }
 
-  function toggleHomeView() {
-    let productArray = qsa('.clothing-item');
-    for (let i = 0; i < productArray.length; i++) {
-      productArray[i].classList.toggle('compact');
-    }
+  /**
+   * Fetch search product data from server
+   */
+  function fetchSearch() {
+    let searchTerm = id('search-term').value;
+    fetch('/ecommerce/products?search=' + searchTerm)
+      .then(statusCheck)
+      .then(resp => resp.json())
+      .then(processSearch)
+      .catch(handleError);
   }
 
+  /**
+   * Process the server response for products matching the search term
+   * * @param {object} response - the server response for products
+   */
+  function processSearch(resp) {
+    let searchTerm = id('search-term');
+    searchTerm.value = '';
+
+    let results = id('result-container');
+    while (results.firstChild) {
+      results.removeChild(results.firstChild);
+    }
+
+    resp = resp.products;
+    for (let i = 0; i < resp.length; i++) {
+      let productArticle = generateProductArticle(resp[i]);
+      results.appendChild(productArticle);
+    }
+    changeView('search-view');
+  }
+
+  /**
+   * Signup and add new user to the server to be added to the database
+   */
   function signup() {
     let username = id('signup-username');
     let password = id('signup-password');
@@ -125,43 +245,54 @@
       .catch(handleError);
   }
 
+  /**
+   * If user is logged in, view their shopping cart
+   */
   function viewCart() {
-    changeView('cart-view');
-    console.log('test');
-    let cartView = id('cart-view');
-    cartView.innerHTML = '';
-    let userCart = JSON.parse(window.localStorage.getItem(USER));
-    if (userCart === null) {
-      userCart = {}
-    }
-    let totalCost = 0;
-    Object.keys(userCart).forEach(item => {
+    if (!USER || !PASS) {
+      changeView('cart-not-logged-view');
+    } else {
+      changeView('cart-view');
+      let cartView = id('cart-view');
+      cartView.innerHTML = '';
+      let userCart = JSON.parse(window.localStorage.getItem(USER));
+      if (userCart === null) {
+        userCart = {}
+      }
+      let totalCost = 0;
+      Object.keys(userCart).forEach(item => {
 
-      let article = gen('article');
-      let name = gen('p');
-      let qt = gen('p');
-      let productPrice = gen('p');
-      name.textContent = 'Item: ' + item;
-      let itemQuantity = userCart[item]['quantity'];
-      let itemPrice = userCart[item]['quantity'] * userCart[item]['price']
-      qt.textContent = 'QT: ' + itemQuantity;
-      productPrice.textContent = 'Price: ' + itemPrice;
-      article.appendChild(name);
-      article.appendChild(qt);
-      article.appendChild(productPrice);
-      totalCost += itemPrice;
-      article.classList.add('clothing-item');
-      cartView.appendChild(article);
-    });
-    let priceElement = gen('p');
-    let checkoutBtn = gen('button');
-    checkoutBtn.textContent = 'Checkout';
-    checkoutBtn.addEventListener('click', checkout);
-    priceElement.textContent = 'total cost: $' + totalCost;
-    cartView.append(priceElement);
-    cartView.appendChild(checkoutBtn);
+        let article = gen('article');
+        let name = gen('p');
+        let qt = gen('p');
+        let productPrice = gen('p');
+        name.textContent = 'Item: ' + item;
+        let itemQuantity = userCart[item]['quantity'];
+        let itemPrice = userCart[item]['quantity'] * userCart[item]['price']
+        qt.textContent = 'QT: ' + itemQuantity;
+        productPrice.textContent = 'Price: ' + itemPrice;
+        article.appendChild(name);
+        article.appendChild(qt);
+        article.appendChild(productPrice);
+        totalCost += itemPrice;
+        article.classList.add('clothing-item');
+        cartView.appendChild(article);
+      });
+      let priceElement = gen('p');
+      let checkoutBtn = gen('button');
+      checkoutBtn.textContent = 'Checkout';
+      checkoutBtn.addEventListener('click', checkout);
+      priceElement.textContent = 'total cost: $' + totalCost;
+      cartView.append(priceElement);
+      cartView.appendChild(checkoutBtn);
+    }
+
   }
 
+  /**
+   * User checksout their items, adding it to their order history and removing the item from the
+   * inventory database
+   */
   function checkout() {
     let cart = JSON.parse(window.localStorage.getItem(USER));
 
@@ -199,34 +330,44 @@
           successfullTransaction.remove();
         }, 1000);
       })
-
-
       .catch(handleError);
   }
 
+  /**
+   * Switch to account login view
+   */
   function viewAccount() {
     if (!USER & !PASS) {
       changeView('login-view');
+      prefillUser();
     } else {
       changeView('login-success-view');
-      prefillUser();
     }
   }
-  function viewOrders() {
-    changeView('history-view');
-  }
 
+  /**
+   * Switch to log in success view if successfully logged in
+   */
   function viewLoginSuccess() {
     changeView('login-success-view');
   }
 
+  /**
+   * Fill user name input box if user toggles save username feature
+   */
   function prefillUser() {
     document.getElementById("login-username").value = window.localStorage.getItem('user');
+    if ((window.localStorage.getItem('user') != null)) {
+      id('save-user-toggle').checked = true;
+    }
   }
 
+  /**
+   * Save username if user toggles this feature
+   */
   function toggleSaveUser() {
-    let user = window.localStorage.getItem('user');
-    if (user === null) {
+    let toggleBtn = id('save-user-toggle');
+    if (toggleBtn.checked) {
       let username = id('login-username').value;
       window.localStorage.setItem('user', username);
     } else {
@@ -234,6 +375,10 @@
     }
   }
 
+  /**
+   * Change to a certain view
+   * @param {string} idOfVisibleView - the view to switch to
+   */
   function changeView(idOfVisibleView) {
     let allViews = qsa('#ecommerce-data > section');
     allViews.forEach(view => view.classList.add('hidden'));
@@ -241,6 +386,9 @@
     view.classList.remove('hidden');
   }
 
+  /**
+   * Check if user log in is valid
+   */
   function authenticate() {
     // implement behavior for signing up
     let username = id('login-username').value;
@@ -257,6 +405,9 @@
       .catch(handleError);
   }
 
+  /**
+   * If user log in isn't valid, display message, if valid, log them in
+   */
   function processAuthentication(resp, username, password) {
     if (resp === 'verified') {
       id('incorrect-message').classList.add('hidden');
@@ -275,6 +426,9 @@
     }
   }
 
+  /**
+   * Fetch server data for all the products
+   */
   function fetchAllProducts() {
     fetch('/ecommerce/products')
       .then(statusCheck)
@@ -285,10 +439,9 @@
 
   /**
    * Process all the random products returned by the server
-   * @param {object} response - the product server data for the random products
+   * @param {object} response - the product server data all products
    */
   function processAll(res) {
-    console.log(res);
     res = res['products'];
     for (let i = 0; i < res.length; i++) {
       let productArticle = generateProductArticle(res[i]);
@@ -296,12 +449,58 @@
     }
   }
 
-  function generateProductArticle(clothesObject) {
-    let name = clothesObject['name'];
-    let quantity = clothesObject['quantity'];
-    let category = clothesObject['category'];
-    let price = clothesObject['price'];
-    let id = clothesObject['id'];
+  /**
+   * Generate all the articles for each product
+   * @param {object} product - the product server data for a product
+   */
+  function generateProductArticle(product) {
+    let name = product['name'];
+    let quantity = product['quantity'];
+    let category = product['category'];
+    let price = product['price'];
+
+    let article = gen('article');
+    let nameElement = gen('p');
+    // let quantityElement = gen('p');
+    let categoryElement = gen('p');
+    let priceElement = gen('p');
+    let buyBtn = gen('button');
+
+    nameElement.textContent = name;
+    // quantityElement.textContent = 'QT: ' + quantity;
+    categoryElement.textContent = category;
+    categoryElement.classList.add('category');
+    priceElement.textContent = '$' + price;
+    buyBtn.textContent = 'Add to Cart!';
+
+    // test this case later
+    buyBtn.addEventListener('click', purchaseItem);
+    if (quantity == 0) {
+      buyBtn.disabled = true;
+    }
+
+    article.appendChild(nameElement);
+    // article.appendChild(quantityElement);
+    article.appendChild(categoryElement);
+    article.appendChild(priceElement);
+    article.appendChild(buyBtn);
+    article.classList.add('product');
+    article.classList.add('clothing-item');
+    article.addEventListener('click', )
+    return article;
+  }
+
+  /**
+   * Process product data and display in product view
+   * @param {object} product - the product server data for a product
+   */
+  function processProductView(product) {
+    let productView = id('product-view');
+    productView.innerHTML = '';
+    let name = product['name'];
+    let quantity = product['quantity'];
+    let category = product['category'];
+    let price = product['price'];
 
     let article = gen('article');
     let nameElement = gen('p');
@@ -313,6 +512,7 @@
     nameElement.textContent = name;
     quantityElement.textContent = 'QT: ' + quantity;
     categoryElement.textContent = category;
+    categoryElement.classList.add('category');
     priceElement.textContent = '$' + price;
     buyBtn.textContent = 'Add to Cart!';
 
@@ -327,10 +527,9 @@
     article.appendChild(categoryElement);
     article.appendChild(priceElement);
     article.appendChild(buyBtn);
-    article.classList.add('clothing-item');
     article.addEventListener('click', viewItem);
     article.id = id;
-    return article;
+    productView.append(article);
   }
 
   function viewItem(event) {
@@ -403,6 +602,9 @@
     }
   }
 
+  /**
+   * Purchase item and add it to the user's order history
+   */
   function purchaseItem(event) {
     if (USER === undefined) {
       id('home-view').classList.add('hidden');
@@ -436,12 +638,6 @@
         })
         .catch(handleError);
     }
-  }
-
-  function changeView(idOfVisibleView) {
-    let allViews = qsa('#ecommerce-data > section');
-    allViews.forEach(view => view.classList.add('hidden'));
-    id(idOfVisibleView).classList.remove('hidden');
   }
 
   /**
