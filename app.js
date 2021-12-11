@@ -46,6 +46,7 @@ app.get('/ecommerce/products', async (req, res) => {
         qry = 'SELECT * FROM product WHERE id = ?;';
         retrievedData = await db.all(qry, productId);
         res.type('json').send({'products': retrievedData});
+        console.log(retrievedData)
       } else if (productId === undefined) {
         qry = 'SELECT * FROM product WHERE name = ?;';
         retrievedData = await db.all(qry, productName);
@@ -55,9 +56,10 @@ app.get('/ecommerce/products', async (req, res) => {
           .send('Please search using either Product Name or Product ID!')
       }
     }
-    
+
     await db.close();
   } catch (error) {
+    console.log(error);
     res.type('text').status(SERVER_ERROR)
       .send(SERVER_ERROR_MSG);
   }
@@ -76,11 +78,11 @@ app.post('/ecommerce/authentication', async (req, res) => {
   } else {
     try {
       let db = await getDBConnection();
-      let getUsernameQry = 'SELECT name from user WHERE name = ?';
+      let getUsernameQry = 'SELECT username from user WHERE username = ?';
       let retrievedUsername = await db.all(getUsernameQry, username);
       if (retrievedUsername.length === 0) {
         res.status(CLIENT_ERROR)
-          .send('Yikes. Username doesn\' exist!');
+          .send('Yikes. Username doesn\'t exist!');
       } else {
         let qry = 'SELECT COUNT(*) FROM user WHERE username = ? and password = ?';
         let retrievedData = await db.all(qry, [username, password]);
@@ -93,6 +95,7 @@ app.post('/ecommerce/authentication', async (req, res) => {
 
       await db.close();
     } catch (error) {
+      console.log(error);
       res.status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG);
     }
@@ -218,7 +221,7 @@ app.post('/ecommerce/cart/update', async (req, res) => {
   } else {
     try {
       let db = await getDBConnection();
-      let getUsernameQry = 'SELECT name from user WHERE name = ?';
+      let getUsernameQry = 'SELECT username from user WHERE username = ?';
       let retrievedUsername = await db.all(getUsernameQry, username);
       if (retrievedUsername.length === 0) {
         res.status(CLIENT_ERROR)
@@ -250,7 +253,7 @@ app.get('/ecommerce/history', async (req, res) => {
   } else {
     try {
       let db = await getDBConnection();
-      let getUsernameQry = 'SELECT name from user WHERE name = ?';
+      let getUsernameQry = 'SELECT username from user WHERE username = ?';
       let retrievedUsername = await db.all(getUsernameQry, username);
       if (retrievedUsername.length === 0) {
         res.status(CLIENT_ERROR)

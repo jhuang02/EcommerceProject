@@ -41,6 +41,7 @@
     let toggleSaveBtn = id('save-user-toggle');
     let historyBtn = id('history-btn');
     let feedbackForm = id('feedback-form');
+    let backFromItemViewBtn = id('back-btn');
 
     let logoutBtn = id('logout-btn');
     let homeFilter = id('home-filter');
@@ -58,12 +59,9 @@
     historyBtn.addEventListener('click', viewHistory);
     feedbackForm.addEventListener('submit', submitFeedback);
     logoutBtn.addEventListener('click', logout);
-    homeFilter.addEventListener('change', function() {
-      filterView('home-filter');
-    });
-    searchFilter.addEventListener('change', function() {
-      filterView('search-filter');
-    });
+    homeFilter.addEventListener('change', () => filterView('home-filter'));
+    searchFilter.addEventListener('change', () => filterView('search-filter'));
+    backFromItemViewBtn.addEventListener('click', () => changeView('home-view'));
   }
 
   function submitFeedback(event) {
@@ -80,13 +78,6 @@
     fetch('/ecommerce/feedback/new', {method: 'POST', body: params})
       .then(statusCheck)
       .catch(handleError);
-    logoutBtn.addEventListener('click', logout);
-    homeFilter.addEventListener('change', function() {
-      filterView('home-filter');
-    });
-    searchFilter.addEventListener('change', function() {
-      filterView('search-filter');
-    });
   }
 
   /**
@@ -399,9 +390,7 @@
     fetch('/ecommerce/authentication', {method: "POST", body: data})
       .then(statusCheck)
       .then(resp => resp.text())
-      .then(function(resp) {
-        processAuthentication(resp, username, password);
-      })
+      .then(resp => processAuthentication(resp, username, password))
       .catch(handleError);
   }
 
@@ -458,6 +447,7 @@
     let quantity = product['quantity'];
     let category = product['category'];
     let price = product['price'];
+    let id = product['id'];
 
     let article = gen('article');
     let nameElement = gen('p');
@@ -465,6 +455,7 @@
     let categoryElement = gen('p');
     let priceElement = gen('p');
     let buyBtn = gen('button');
+  
 
     nameElement.textContent = name;
     // quantityElement.textContent = 'QT: ' + quantity;
@@ -486,55 +477,16 @@
     article.appendChild(buyBtn);
     article.classList.add('product');
     article.classList.add('clothing-item');
-    article.addEventListener('click', )
-    return article;
-  }
-
-  /**
-   * Process product data and display in product view
-   * @param {object} product - the product server data for a product
-   */
-  function processProductView(product) {
-    let productView = id('product-view');
-    productView.innerHTML = '';
-    let name = product['name'];
-    let quantity = product['quantity'];
-    let category = product['category'];
-    let price = product['price'];
-
-    let article = gen('article');
-    let nameElement = gen('p');
-    let quantityElement = gen('p');
-    let categoryElement = gen('p');
-    let priceElement = gen('p');
-    let buyBtn = gen('button');
-
-    nameElement.textContent = name;
-    quantityElement.textContent = 'QT: ' + quantity;
-    categoryElement.textContent = category;
-    categoryElement.classList.add('category');
-    priceElement.textContent = '$' + price;
-    buyBtn.textContent = 'Add to Cart!';
-
-    // test this case later
-    buyBtn.addEventListener('click', purchaseItem);
-    if (quantity == 0) {
-      buyBtn.disabled = true;
-    }
-
-    article.appendChild(nameElement);
-    article.appendChild(quantityElement);
-    article.appendChild(categoryElement);
-    article.appendChild(priceElement);
-    article.appendChild(buyBtn);
-    article.addEventListener('click', viewItem);
+    article.addEventListener('click', viewItem)
     article.id = id;
-    productView.append(article);
+    return article;
   }
 
   function viewItem(event) {
     if (event.target.textContent !== 'Add to Cart!') {
+      console.log(this)
       PRODUCT_ID = this.id;
+
       changeView('item-view');
       fetch('/ecommerce/products?productId=' + this.id)
         .then(statusCheck)
@@ -545,32 +497,42 @@
   }
 
   function populateItemView(res) {
+    console.log(res);
     res = res['products'][0];
 
     let nameElement = gen('p');
     let quantityElement = gen('p');
     let categoryElement = gen('p');
     let priceElement = gen('p');
+    let buyBtn = gen('button');
     let feedbackElement = gen('article');
 
     nameElement.textContent = 'Name: ' + res['name'];
     quantityElement.textContent = 'Quantity: ' + res['quantity'];
     categoryElement.textContent = 'Category: ' + res['category'];
+    priceElement.textContent = '$' + res['price'];
+    buyBtn.textContent = 'Add to Cart!';
+    // test this case later
+    buyBtn.addEventListener('click', purchaseItem);
+    if (res['quantity'] == 0) {
+      buyBtn.disabled = true;
+    }
     priceElement.textContent = 'Price: ' + res['price'];
     fetch('/ecommerce/feedback?productId=' + res['id'])
-    .then(statusCheck)
-    .then(res => res.json())
-    .then(res => {
-      populateFeedback(res, feedbackElement)
-    })
-    .catch(handleError);
+      .then(statusCheck)
+      .then(resp => resp.json())
+      .then(resp => {
+        populateFeedback(resp, feedbackElement)
+      })
+      .catch(handleError);
 
-    let itemView = id('item-view');
-    itemView.appendChild(nameElement);
-    itemView.appendChild(categoryElement);
-    itemView.appendChild(priceElement);
+    let itemView = id('item-section');
+    itemView.prepend(buyBtn);
+    itemView.prepend(priceElement);
+    itemView.prepend(categoryElement);
+    itemView.prepend(nameElement);
+
     itemView.appendChild(feedbackElement);
-
   }
 
   function populateFeedback(res, feedbackElement) {
