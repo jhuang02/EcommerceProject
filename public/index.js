@@ -111,7 +111,7 @@
       productArray[i].classList.remove('hidden');
     }
 
-    if (filter !== 'all') {
+    if (filter != 'all') {
       for (let i = 0; i < productArray.length; i++) {
         if (productArray[i].lastChild.previousSibling.previousSibling.textContent
           !== capitalize(filter)) {
@@ -188,15 +188,15 @@
    */
   function createOrderElement(item, orderElement) {
     let itemElement = gen('section');
-      itemElement.classList.add('history-item');
-      let itemNameElement = gen('p');
-      let itemQuantityElement = gen('p');
-      itemNameElement.textContent = 'Name: ' + item['name'];
-      itemQuantityElement.textContent = 'Quantity: ' + item['quantity'];
-      itemElement.appendChild(itemNameElement);
-      itemElement.appendChild(itemQuantityElement);
-      itemElement.classList.add('clothing-item');
-      orderElement.appendChild(itemElement);
+    itemElement.classList.add('history-item');
+    let itemNameElement = gen('p');
+    let itemQuantityElement = gen('p');
+    itemNameElement.textContent = 'Name: ' + item['name'];
+    itemQuantityElement.textContent = 'Quantity: ' + item['quantity'];
+    itemElement.appendChild(itemNameElement);
+    itemElement.appendChild(itemQuantityElement);
+    itemElement.classList.add('clothing-item');
+    orderElement.appendChild(itemElement);
   }
 
   /**
@@ -213,7 +213,7 @@
 
   /**
    * Process the server response for products matching the search term
-   * * @param {object} resp - the server response for products
+   * @param {object} resp - the server response for products
    */
   function processSearch(resp) {
     let searchTerm = id('search-term');
@@ -256,7 +256,7 @@
         setTimeout(() => {
           id('login-view').classList.remove('hidden');
           createdAccountMsg.remove();
-        }, ONESEC)
+        }, ONESEC);
       })
       .catch(handleError);
   }
@@ -272,15 +272,14 @@
       let cartView = id('cart-view');
       cartView.innerHTML = '';
       let cartText = gen('h2');
-      cartText.textContent = "Your Shopping Cart:"
+      cartText.textContent = "Your Shopping Cart:";
       cartView.appendChild(cartText);
       let userCart = JSON.parse(window.localStorage.getItem(USER));
       if (userCart === null) {
-        userCart = {}
+        userCart = {};
       }
       let totalCost = 0;
       Object.keys(userCart).forEach(item => {
-
         let article = gen('article');
         article.classList.add('cart-product');
         let name = gen('p');
@@ -288,7 +287,7 @@
         let productPrice = gen('p');
         name.textContent = 'Item: ' + item;
         let itemQuantity = userCart[item]['quantity'];
-        let itemPrice = userCart[item]['quantity'] * userCart[item]['price']
+        let itemPrice = userCart[item]['quantity'] * userCart[item]['price'];
         qt.textContent = 'QT: ' + itemQuantity;
         productPrice.textContent = 'Price: ' + itemPrice;
         article.appendChild(name);
@@ -298,16 +297,20 @@
         article.classList.add('clothing-item');
         cartView.appendChild(article);
       });
-      let priceElement = gen('p');
-      let checkoutBtn = gen('button');
-      checkoutBtn.textContent = 'Checkout';
-      checkoutBtn.addEventListener('click', checkout);
-      priceElement.textContent = 'Total Cost: $' + totalCost;
-      cartView.append(priceElement);
-      cartView.appendChild(checkoutBtn);
+      finishCartView(totalCost,)
     }
-
   }
+
+function finishCartView(totalCost) {
+  let priceElement = gen('p');
+  let checkoutBtn = gen('button');
+  checkoutBtn.textContent = 'Checkout';
+  checkoutBtn.addEventListener('click', checkout);
+  priceElement.textContent = 'Total Cost: $' + totalCost;
+  cartView.append(priceElement);
+  cartView.appendChild(checkoutBtn);
+}
+
 
   /**
    * User checksout their items, adding it to their order history and removing the item from the
@@ -325,10 +328,12 @@
         .then(statusCheck)
         .then(res => res.text())
         // what can I do here
-        .then()
+        .then(processCart)
         .catch(handleError);
     });
+  }
 
+  function processCart(resp) {
     fetch('/ecommerce/cart/update?username=' + USER, {method: "POST"})
       .then(statusCheck)
       .then(res => res.text())
@@ -357,7 +362,7 @@
    * Switch to account login view
    */
   function viewAccount() {
-    if (!USER | !PASS) {
+    if (!USER || !PASS) {
       changeView('login-view');
       prefillUser();
     } else {
@@ -377,7 +382,7 @@
    */
   function prefillUser() {
     document.getElementById("login-username").value = window.localStorage.getItem('user');
-    if ((window.localStorage.getItem('user') != null)) {
+    if (!(window.localStorage.getItem('user') === null)) {
       id('save-user-toggle').checked = true;
     }
   }
@@ -502,7 +507,7 @@
 
 
     buyBtn.addEventListener('click', purchaseItem);
-    if (quantity == 0) {
+    if (quantity === 0) {
       buyBtn.disabled = true;
     }
 
@@ -515,7 +520,7 @@
     article.appendChild(buyBtn);
     article.classList.add('product');
     article.classList.add('clothing-item');
-    article.addEventListener('click', viewItem)
+    article.addEventListener('click', viewItem);
     article.id = id;
     return article;
   }
@@ -574,18 +579,35 @@
         })
       })
       .catch(handleError);
+      appendItemChildren(nameElement, categoryElement, quantityElement, priceElement, buyBtn
+        , feedbackElement);
+  }
 
+  /**
+   * Append children on item element
+   * @param {object} nameElement - name element
+   * @param {object} categoryElement - category element
+   * @param {object} quantityElement - quantity element
+   * @param {object} priceElement - price element
+   * @param {object} buyBtn - buy btn element
+   * @param {object} feedbackElement - feedback element
+   */
+  function appendItemChildren(nameElement, categoryElement, quantityElement, priceElement, buyBtn
+    , feedbackElement) {
     let itemView = id('item-section');
-
     itemView.appendChild(nameElement);
     itemView.appendChild(categoryElement);
     itemView.appendChild(quantityElement);
     itemView.appendChild(priceElement);
     itemView.appendChild(buyBtn);
-
     itemView.appendChild(feedbackElement);
   }
 
+  /**
+   * Populate feedback view
+   * @param {object} res - server feedback response
+   * @param {object} feedbackElement - feedback element
+   */
   function populateFeedback(res, feedbackElement) {
     let feedbackReview = gen('article');
     feedbackReview.classList.add('feedback');
@@ -644,9 +666,8 @@
           if (res['quantity'] == 0) {
             event.target.disabled = true;
           }
-          console.log(res)
           if (cart[res['name']] === undefined) {
-            let productData = {'quantity' : 1, 'price': res['price'], 'id': res['id']}
+            let productData = {'quantity' : 1, 'price': res['price'], 'id': res['id']};
             cart[res['name']] = productData;
           } else {
             cart[res['name']]['quantity'] += 1;
@@ -724,6 +745,7 @@
   /**
    * This function executes whenever there is an error in the fetch. A failure message
    * element is appended to the activity description.
+   * @param {error} error - the error
    */
   function handleError(error) {
     console.log(error);
