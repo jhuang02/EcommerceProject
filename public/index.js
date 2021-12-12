@@ -247,10 +247,12 @@
   function signup() {
     let username = id('signup-username');
     let password = id('signup-password');
+    let email = id('signup-email');
 
     let params = new FormData();
     params.append('username', username.value);
     params.append('password', password.value);
+    params.append('email', email.value);
 
     fetch('/ecommerce/user/new', {method: "POST", body: params})
       .then(statusCheck)
@@ -258,6 +260,7 @@
       .then(res => {
         username.value = '';
         password.value = '';
+        email.value = '';
         id('login-view').classList.add('hidden');
         let createdAccountMsg = gen('p');
         qs('main').appendChild(createdAccountMsg);
@@ -688,6 +691,7 @@
 
   /**
    * Purchase item and add it to the user's order history
+   * @param {Object} event is the event that occurs when the buy button is clicked
    */
   function purchaseItem(event) {
     if (USER === undefined) {
@@ -704,6 +708,10 @@
     }
   }
 
+  /**
+   * This function updates the HTML and calls a fetch to purchase a product from the database
+   * @param {Object} event is the event that occurs when the buy button is clicked
+   */
   function processItem(event) {
     let cart = JSON.parse(window.localStorage.getItem(USER));
       let productId = event.target.parentElement.firstElementChild.id;
@@ -803,5 +811,8 @@
     let failureMessage = document.createElement("p");
     failureMessage.textContent = "There was a failure in retrieving data";
     eccomerceArea.appendChild(failureMessage);
+    qsa('button').forEach(btn => {
+      btn.disabled = true;
+    });
   }
 })();
