@@ -348,7 +348,7 @@
           cartView.append(priceElement);
           cartView.appendChild(checkoutBtn);
           successfullTransaction.remove();
-        }, 1000);
+        }, ONESEC);
       })
       .catch(handleError);
   }
@@ -357,7 +357,7 @@
    * Switch to account login view
    */
   function viewAccount() {
-    if (!USER & !PASS) {
+    if (!USER | !PASS) {
       changeView('login-view');
       prefillUser();
     } else {
@@ -425,6 +425,9 @@
 
   /**
    * If user log in isn't valid, display message, if valid, log them in
+   * @param {object} resp - the servers response data for logging in user
+   * @param {string} username - username
+   * @param {string} password - password
    */
   function processAuthentication(resp, username, password) {
     if (resp === 'verified') {
@@ -434,10 +437,10 @@
       PASS = password;
       let cart = JSON.parse(window.localStorage.getItem(USER));
       if (cart === null) {
-        cart = {}
+        cart = {};
       }
       window.localStorage.setItem(USER, JSON.stringify(cart));
-      //more user stuff
+
       viewLoginSuccess();
     } else {
       id('incorrect-message').classList.remove('hidden');
@@ -457,7 +460,7 @@
 
   /**
    * Process all the random products returned by the server
-   * @param {object} response - the product server data all products
+   * @param {object} res - the product server data all products
    */
   function processAll(res) {
     res = res['products'];
@@ -470,6 +473,7 @@
   /**
    * Generate all the articles for each product
    * @param {object} product - the product server data for a product
+   * @returns the product article
    */
   function generateProductArticle(product) {
     let name = product['name'];
@@ -480,27 +484,32 @@
 
     let article = gen('article');
     let nameElement = gen('p');
+
     // let quantityElement = gen('p');
+
     let categoryElement = gen('p');
     let priceElement = gen('p');
     let buyBtn = gen('button');
 
-
     nameElement.textContent = capitalize(name);
+
     // quantityElement.textContent = 'QT: ' + quantity;
+
     categoryElement.textContent = capitalize(category);
     categoryElement.classList.add('category');
     priceElement.textContent = '$' + price;
     buyBtn.textContent = 'Add to Cart!';
 
-    // test this case later
+
     buyBtn.addEventListener('click', purchaseItem);
     if (quantity == 0) {
       buyBtn.disabled = true;
     }
 
     article.appendChild(nameElement);
+
     // article.appendChild(quantityElement);
+
     article.appendChild(categoryElement);
     article.appendChild(priceElement);
     article.appendChild(buyBtn);
@@ -511,9 +520,13 @@
     return article;
   }
 
+  /**
+   * Switch to item view and load product data
+   * @param {object} event - the event triggering the item view load
+   */
   function viewItem(event) {
     if (event.target.textContent !== 'Add to Cart!') {
-      console.log(this)
+
       PRODUCT_ID = this.id;
 
       changeView('item-view');
@@ -525,6 +538,10 @@
     }
   }
 
+  /**
+   * Populate item view with product data
+   * @param {object} res - the server response
+   */
   function populateItemView(res) {
     res = res['products'][0];
 
@@ -542,9 +559,9 @@
     categoryElement.textContent = 'Category: ' + capitalize(res['category']);
     priceElement.textContent = '$' + res['price'];
     buyBtn.textContent = 'Add to Cart!';
-    // test this case later
+
     buyBtn.addEventListener('click', purchaseItem);
-    if (res['quantity'] == 0) {
+    if (res['quantity'] === 0) {
       buyBtn.disabled = true;
     }
     priceElement.textContent = 'Price: ' + res['price'];
@@ -614,7 +631,7 @@
       setTimeout(() => {
         loginFailureMsg.remove()
         id('home-view').classList.remove('hidden');
-      }, 1000);
+      }, ONESEC);
     } else {
       let cart = JSON.parse(window.localStorage.getItem(USER));
       let productId = event.target.parentElement.firstElementChild.id;
