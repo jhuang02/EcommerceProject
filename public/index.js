@@ -74,6 +74,11 @@
     feedbackForm.addEventListener('submit', submitFeedback);
   }
 
+  /**
+   * This function retrieves the feedback information and uses a fetch call to send the infromation
+   * to the sqlite database
+   * @param {Object} event is the event that occurs when the feedback is submitted
+   */
   function submitFeedback(event) {
     event.preventDefault();
     let rating = id('rating').value;
@@ -276,6 +281,10 @@
     }
   }
 
+  /**
+   * This function switches the view to the shopping cart view and displays all the items that
+   * are currently in the cart
+   */
   function appendCart() {
     changeView('cart-view');
     let cartView = id('cart-view');
@@ -309,15 +318,20 @@
     finishCartView(totalCost)
   }
 
-function finishCartView(totalCost) {
-  let priceElement = gen('p');
-  let checkoutBtn = gen('button');
-  checkoutBtn.textContent = 'Checkout';
-  checkoutBtn.addEventListener('click', checkout);
-  priceElement.textContent = 'Total Cost: $' + totalCost;
-  cartView.append(priceElement);
-  cartView.appendChild(checkoutBtn);
-}
+  /**
+   * This function adds the totalCost value to the bottom of the shopping cart view
+   * @param {integer} totalCost is the number that reprsents the total cost of the items in the
+   * shopping cart
+   */
+  function finishCartView(totalCost) {
+    let priceElement = gen('p');
+    let checkoutBtn = gen('button');
+    checkoutBtn.textContent = 'Checkout';
+    checkoutBtn.addEventListener('click', checkout);
+    priceElement.textContent = 'Total Cost: $' + totalCost;
+    cartView.append(priceElement);
+    cartView.appendChild(checkoutBtn);
+  }
 
 
   /**
@@ -336,31 +350,6 @@ function finishCartView(totalCost) {
         .then(statusCheck)
         .catch(handleError);
     });
-  }
-
-  function processCart(resp) {
-    fetch('/ecommerce/cart/update?username=' + USER, {method: "POST"})
-      .then(statusCheck)
-      .then(res => res.text())
-      .then(() => {
-        let cartView = id('cart-view');
-        window.localStorage.setItem(USER, JSON.stringify({}));
-        cartView.innerHTML = '';
-        let successfullTransaction = gen('p');
-        successfullTransaction.textContent = 'Transaction was successfull';
-        qs('main').appendChild(successfullTransaction);
-        setTimeout(() => {
-          let priceElement = gen('p');
-          let checkoutBtn = gen('button');
-          checkoutBtn.textContent = 'Checkout';
-          checkoutBtn.addEventListener('click', checkout);
-          priceElement.textContent = 'total cost: $0';
-          cartView.append(priceElement);
-          cartView.appendChild(checkoutBtn);
-          successfullTransaction.remove();
-        }, ONESEC);
-      })
-      .catch(handleError);
   }
 
   /**
@@ -497,15 +486,11 @@ function finishCartView(totalCost) {
     let article = gen('article');
     let nameElement = gen('p');
 
-    // let quantityElement = gen('p');
-
     let categoryElement = gen('p');
     let priceElement = gen('p');
     let buyBtn = gen('button');
 
     nameElement.textContent = capitalize(name);
-
-    // quantityElement.textContent = 'QT: ' + quantity;
 
     categoryElement.textContent = capitalize(category);
     categoryElement.classList.add('category');
@@ -519,9 +504,6 @@ function finishCartView(totalCost) {
     }
 
     article.appendChild(nameElement);
-
-    // article.appendChild(quantityElement);
-
     article.appendChild(categoryElement);
     article.appendChild(priceElement);
     article.appendChild(buyBtn);
