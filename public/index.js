@@ -138,10 +138,10 @@
     } else {
       changeView('history-view');
       fetch('/ecommerce/history?username=' + USER)
-      .then(statusCheck)
-      .then(res => res.json())
-      .then(populateHistoryView)
-      .catch(handleError);
+        .then(statusCheck)
+        .then(res => res.json())
+        .then(populateHistoryView)
+        .catch(handleError);
     }
   }
 
@@ -149,8 +149,10 @@
    * Change to the history view if logged in and fetch user order history
    */
   function populateHistoryView(res) {
+    id('history-view').innerHTML = '';
+    let historyTitle = gen('p');
+    historyTitle.textContent = 'Order History:'
     res = res['history'];
-    console.log(res);
     let cartId;
     let orderElement = gen('article');
     orderElement.classList.add('cart');
@@ -174,6 +176,7 @@
       itemElement.classList.add('clothing-item');
       orderElement.appendChild(itemElement);
     });
+    id('history-view').appendChild(historyTitle);
     id('history-view').appendChild(orderElement);
   }
 

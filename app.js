@@ -273,31 +273,25 @@ app.post('/ecommerce/feedback/new', async (req, res) => {
   let username = req.body.username;
   let rating = req.body.rating;
   let review = req.body.review;
-
-  res.type('text')
-
+  res.type('text');
   if (username === undefined || rating === undefined || review === undefined || productId === undefined) {
     res.status(CLIENT_ERROR)
       .send(INVALID_PARAMETERS);
   } else {
     try {
       let db = await getDBConnection();
-      let getProductIdQry = 'SELECT id FROM product WHERE id = ?';
-      let retrievedProductId = await db.all(getProductIdQry, productId);
-      if (retrievedProductId.length === 0) {
-        res.status(CLIENT_ERROR)
-          .send('Yikes. Product ID doesn\' exist!');
+      let isProductInDatabase = await checkProductInDatabase(productId);
+      let isUsernameInDatabase = await checkUsernameInDatabase(username);
+      if (isUsernameInDatabase === 1 && isProductInDatabase === 1) {
+        let insertFeedbackQry = 'INSERT INTO feedback (productId, username, rating, review) VALUES (?, ?, ?, ?)';
+        await db.run(insertFeedbackQry, [productId, username, rating, review]);
+        res.send('Successfully inserted feedback!');
+      } else if (isUsernameInDatabase === 0 || isProductInDatabase == 0) {
+        res.status(SERVER_ERROR)
+        .send(SERVER_ERROR_MSG);
       } else {
-        let getUsernameQry = 'SELECT username FROM user WHERE username = ?';
-        let retrievedUsername = await db.all(getUsernameQry, username);
-        if (retrievedUsername.length === 0) {
-          res.status(CLIENT_ERROR)
-            .send('Yikes. Username doesn\'t exist!');
-        } else {
-          let insertFeedbackQry = 'INSERT INTO feedback (productId, username, rating, review) VALUES (?, ?, ?, ?)';
-          await db.run(insertFeedbackQry, [productId, username, rating, review]);
-          res.send('Successfully inserted feedback!');
-        }
+        res.status(CLIENT_ERROR)
+          .send('Yikes. Username and/or Product ID doesn\'t exist!');
       }
       await db.close();
     } catch (error) {
@@ -308,6 +302,43 @@ app.post('/ecommerce/feedback/new', async (req, res) => {
   }
 });
 
+async function checkUsernameInDatabase(username) {
+  try {
+    let isUsernameInDatabase = -1;
+
+    let db = await getDBConnection();
+    let getUsernameQry = 'SELECT username FROM user WHERE username = ?';
+    let retrievedUsername = await db.all(getUsernameQry, username);
+    if (retrievedUsername.length !== 0) {
+      isUsernameInDatabase = 1;
+    }
+    await db.close();
+    return isUsernameInDatabase;
+  } catch (error) {
+    console.log(error);
+    return 0;
+  }
+}
+
+async function checkProductInDatabase(product) {
+  try {
+    let isProductInDatabase = -1;
+
+    let db = await getDBConnection();
+    let getProductQry = 'SELECT id FROM product WHERE id = ?';
+    let retrievedProduct = await db.all(getProductQry, product);
+    if (retrievedProduct.length !== 0) {
+      isProductInDatabase = 1;
+    }
+    await db.close();
+    return isProductInDatabase;
+  } catch (error) {
+    console.log('why')
+    console.log(error);
+    return 0;
+  }
+}
+
 app.get('/ecommerce/feedback', async (req, res) => {
   let productId = req.query.productId;
 
@@ -315,18 +346,26 @@ app.get('/ecommerce/feedback', async (req, res) => {
     res.type('text').status(CLIENT_ERROR)
       .send(INVALID_PARAMETERS);
   } else {
-    let db = await getDBConnection();
-    let verifyIdQry = 'SELECT * FROM product WHERE id = ?;';
-    let verifyIdRes = await db.run(verifyIdQry, productId);
-    if (verifyIdRes.length === 0) {
-      res.type('text').status(CLIENT_ERROR)
-        .send('Yikes! Product ID does\'t exist.');
-    } else {
-      let getFeedbackQry = 'SELECT * FROM feedback WHERE productId = ?;';
-      let getFeedbackRes = await db.all(getFeedbackQry, productId);
-      res.type('json').send({'feedback': getFeedbackRes});
+    try {
+      let db = await getDBConnection();
+      let isProductInDatabase = await checkProductInDatabase(productId);
+      if (isProductInDatabase === 1) {
+        let getFeedbackQry = 'SELECT * FROM feedback WHERE productId = ?;';
+        let getFeedbackRes = await db.all(getFeedbackQry, productId);
+        res.type('json').send({'feedback': getFeedbackRes});
+      } else if (isProductInDatabase === -1) {
+        res.type('text').send('Product doesn\'t exist in Database');
+      } else {
+        console.log('here');
+        res.status(SERVER_ERROR)
+          .send(SERVER_ERROR_MSG);
+      }
+      await db.close();
+    } catch {
+      console.log(error);
+      res.status(SERVER_ERROR)
+        .send(SERVER_ERROR_MSG);
     }
-    await db.close();
   }
 });
 
