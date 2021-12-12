@@ -111,10 +111,10 @@
       productArray[i].classList.remove('hidden');
     }
 
-    if (filter != 'all') {
+    if (filter !== 'all') {
       for (let i = 0; i < productArray.length; i++) {
-        if (productArray[i].lastChild.previousSibling.previousSibling.textContent
-          !== capitalize(filter)) {
+        if (productArray[i].lastChild.previousSibling.previousSibling.textContent !==
+          capitalize(filter)) {
           productArray[i].classList.add('hidden');
         }
       }
@@ -268,37 +268,41 @@
     if (!USER || !PASS) {
       changeView('cart-not-logged-view');
     } else {
-      changeView('cart-view');
-      let cartView = id('cart-view');
-      cartView.innerHTML = '';
-      let cartText = gen('h2');
-      cartText.textContent = "Your Shopping Cart:";
-      cartView.appendChild(cartText);
-      let userCart = JSON.parse(window.localStorage.getItem(USER));
-      if (userCart === null) {
-        userCart = {};
-      }
-      let totalCost = 0;
-      Object.keys(userCart).forEach(item => {
-        let article = gen('article');
-        article.classList.add('cart-product');
-        let name = gen('p');
-        let qt = gen('p');
-        let productPrice = gen('p');
-        name.textContent = 'Item: ' + item;
-        let itemQuantity = userCart[item]['quantity'];
-        let itemPrice = userCart[item]['quantity'] * userCart[item]['price'];
-        qt.textContent = 'QT: ' + itemQuantity;
-        productPrice.textContent = 'Price: ' + itemPrice;
-        article.appendChild(name);
-        article.appendChild(qt);
-        article.appendChild(productPrice);
-        totalCost += itemPrice;
-        article.classList.add('clothing-item');
-        cartView.appendChild(article);
-      });
-      finishCartView(totalCost,)
+      appendCart();
     }
+  }
+
+  function appendCart() {
+    changeView('cart-view');
+    let cartView = id('cart-view');
+    cartView.innerHTML = '';
+    let cartText = gen('h2');
+    cartText.textContent = "Your Shopping Cart:";
+    cartView.appendChild(cartText);
+    let userCart = JSON.parse(window.localStorage.getItem(USER));
+    if (userCart === null) {
+      userCart = {};
+    }
+    let totalCost = 0;
+    Object.keys(userCart).forEach(item => {
+      let article = gen('article');
+      article.classList.add('cart-product');
+      let name = gen('p');
+      let qt = gen('p');
+      let productPrice = gen('p');
+      name.textContent = 'Item: ' + item;
+      let itemQuantity = userCart[item]['quantity'];
+      let itemPrice = userCart[item]['quantity'] * userCart[item]['price'];
+      qt.textContent = 'QT: ' + itemQuantity;
+      productPrice.textContent = 'Price: ' + itemPrice;
+      article.appendChild(name);
+      article.appendChild(qt);
+      article.appendChild(productPrice);
+      totalCost += itemPrice;
+      article.classList.add('clothing-item');
+      cartView.appendChild(article);
+    });
+    finishCartView(totalCost)
   }
 
 function finishCartView(totalCost) {
