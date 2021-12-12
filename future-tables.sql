@@ -25,7 +25,7 @@ CREATE TABLE feedback (
   productId INTEGER,
   username TEXT,
   rating INTEGER,
-  reviews TEXT,
+  review TEXT,
   FOREIGN KEY(productid) references product(id),
   FOREIGN KEY(username) references user(username)
 );

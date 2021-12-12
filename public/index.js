@@ -581,6 +581,7 @@
    * Purchase item and add it to the user's order history
    */
   function purchaseItem(event) {
+    console.log('ugh: ', USER)
     if (USER === undefined) {
       id('home-view').classList.add('hidden');
       let loginFailureMsg = gen('id');
@@ -592,7 +593,7 @@
       }, 1000);
     } else {
       let cart = JSON.parse(window.localStorage.getItem(USER));
-      let productName = event.target.parentElement.firstElementChild.textContent;
+      let productName = event.target.parentElement.firstElementChild.textContent.split(' ')[1];
       console.log(productName);
       fetch('/ecommerce/purchase?productName=' + productName.toLowerCase(), {method: 'POST'})
         .then(statusCheck)
