@@ -10,8 +10,7 @@
 
 **Returned Data Format**: JSON
 
-**Description 1:** If the search parameter is not included in the request, the endpoint returns a JSON of all the products in the database. The JSON includes data
-about the id, name, quantity, category, and price of each product.
+**Description 1:** If neither the productName parameter nor the productId parameter are not included in the request, the endpoint returns a JSON of all the products in the database. The JSON includes data regarding the id, name, quantity, category, and price of each product.
 
 **Example Request 1:** /ecommerce/products
 
@@ -38,9 +37,9 @@ about the id, name, quantity, category, and price of each product.
 }
 ```
 
-**Description 2:** If the search parameter (name of the product) is included in the request, the endpoint returns a JSON that contains the id, name, quantity, price, and category of the product.
+**Description 2:** If either the productName or the productId parameter is included in the query of the request, the endpoint returns a JSON that contains the id, name, quantity, price, and category of the product.
 
-**Example Request 2:** /ecommerce/products?search=blue jeans
+**Example Request 2:** /ecommerce/products?productName=blue jeans
 
 **Example Output 2:**
 
@@ -59,6 +58,8 @@ about the id, name, quantity, category, and price of each product.
 ```
 
 **Error Handling:**
+- Possible 400 (client error) error (all plain text):
+  - 'Please search using either Product Name or Product ID!'
 - Possible 500 (server error) error (all plain text):
   - 'An error occurred on the server. Try again later.'
 
@@ -71,10 +72,10 @@ about the id, name, quantity, category, and price of each product.
 
 **Returned Data Format**: Plain Text
 
-**Description:** If the username and password body parameters exist in the 'user database', the endpoint returns the Text 'success'.
-If otherwise, the endpoint returns the text 'failed'.
+**Description:** If the username and password body parameters exist in the 'user database', the endpoint returns the text 'verified'.
+Otherwise, the endpoint returns the text 'failed'.
 
-**Example Request:** /ecommerce/user with body parameters username=Justin, password=12345
+**Example Request:** /ecommerce/authentication with body parameters username=Justin, password=12345
 
 **Example Response:**
 
@@ -84,7 +85,7 @@ success
 
 **Error Handling:**
 - Possible 400 (invalid request) error (all plain text):
-  - If the username and password query parameters aren't provided, sends an error with the message: 'Missing one or more of the required params'.
+  - If the username and password query parameters aren't provided, sends an error with the message: 'Yikes. Username doesn't exist!'.
 - Possible 500 (server error) error (all plain text):
   - 'An error occurred on the server. Try again later.'
 
@@ -108,12 +109,14 @@ User added!
 
 **Error Handling:**
 - Possible 400 (invalid request) error (all plain text):
+  - If the username already exists in the database, an error is sent with the message: 'User already exists!
+- Possible 400 (invalid request) error (all plain text):
   - If the username and password query parameters aren't provided, sends an error with the message: 'Missing one or more of the required params'.
 - Possible 500 (server error) error (all plain text):
   - 'An error occurred on the server. Try again later.'
 
 ## Purchase a product
-**Request Format:** /ecommerce/product
+**Request Format:** /ecommerce/purchase
 
 **Query Parameters:** item, userId
 

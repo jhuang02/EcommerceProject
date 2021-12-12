@@ -507,7 +507,7 @@
     article.classList.add('product');
     article.classList.add('clothing-item');
     article.addEventListener('click', viewItem)
-    article.id = id;
+    nameElement.id = id;
     return article;
   }
 
@@ -517,7 +517,7 @@
       PRODUCT_ID = this.id;
 
       changeView('item-view');
-      fetch('/ecommerce/products?productId=' + this.id)
+      fetch('/ecommerce/products?productId=' + this.firstElementChild.id)
         .then(statusCheck)
         .then(res => res.json())
         .then(populateItemView)
@@ -537,6 +537,7 @@
     feedbackElement.classList.add('item-view-product');
 
     nameElement.textContent = 'Name: ' + capitalize(res['name']);
+    nameElement.id = res['id'];
     quantityElement.textContent = 'Quantity: ' + res['quantity'];
     categoryElement.textContent = 'Category: ' + capitalize(res['category']);
     priceElement.textContent = '$' + res['price'];
@@ -605,7 +606,6 @@
    * Purchase item and add it to the user's order history
    */
   function purchaseItem(event) {
-    console.log('ugh: ', USER)
     if (USER === undefined) {
       id('home-view').classList.add('hidden');
       let loginFailureMsg = gen('id');
@@ -617,9 +617,8 @@
       }, 1000);
     } else {
       let cart = JSON.parse(window.localStorage.getItem(USER));
-      let productName = event.target.parentElement.firstElementChild.textContent.split(' ')[1];
-      console.log(productName);
-      fetch('/ecommerce/purchase?productName=' + productName.toLowerCase(), {method: 'POST'})
+      let productId = event.target.parentElement.firstElementChild.id;
+      fetch('/ecommerce/purchase?productId=' + productId, {method: 'POST'})
         .then(statusCheck)
         .then(res => res.json())
         .then(res => {
