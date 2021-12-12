@@ -1,7 +1,5 @@
 header {
   display: flex;
-  height: 5vh;
-  background-color: blue;
   align-items: center;
   background-color: rgb(18, 84, 207);
   position: sticky;
@@ -11,7 +9,7 @@ header {
   justify-content: space-around;
 }
 
-p, h2, button, form, select, label{
+p, h2, button, form, select, label {
   font-family: 'Poppins', sans-serif;
 }
 
@@ -31,11 +29,11 @@ nav {
   align-self: center;
 }
 
-#feedback-form {
+.feedback-form-hidden {
   margin-top: 3%;
   display: flex;
   flex-direction: column;
-  margin-bottom: 3%
+  margin-bottom: 3%;
 }
 
 #rating, #review, #feedback-btn {
@@ -43,7 +41,7 @@ nav {
 }
 
 .hidden {
-  display: none !important;
+  display: none;
 }
 
 .product {
@@ -92,4 +90,3 @@ nav {
 button, input {
   border-radius: 3px;
 }
-
