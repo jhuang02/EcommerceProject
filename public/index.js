@@ -167,6 +167,7 @@
         cartId = item['cartId'];
       }
       let itemElement = gen('section');
+      itemElement.classList.add('history-item');
       let itemNameElement = gen('p');
       let itemQuantityElement = gen('p');
       itemNameElement.textContent = 'Name: ' + item['name'];
@@ -264,6 +265,7 @@
       Object.keys(userCart).forEach(item => {
 
         let article = gen('article');
+        article.classList.add('cart-product');
         let name = gen('p');
         let qt = gen('p');
         let productPrice = gen('p');
@@ -515,10 +517,11 @@
     let priceElement = gen('p');
     let buyBtn = gen('button');
     let feedbackElement = gen('article');
+    feedbackElement.classList.add('item-view-product');
 
-    nameElement.textContent = 'Name: ' + res['name'];
+    nameElement.textContent = 'Name: ' + capitalize(res['name']);
     quantityElement.textContent = 'Quantity: ' + res['quantity'];
-    categoryElement.textContent = 'Category: ' + res['category'];
+    categoryElement.textContent = 'Category: ' + capitalize(res['category']);
     priceElement.textContent = '$' + res['price'];
     buyBtn.textContent = 'Add to Cart!';
     // test this case later
@@ -550,10 +553,13 @@
 
   function populateFeedback(res, feedbackElement) {
     let feedbackReview = gen('article');
+    feedbackReview.classList.add('feedback');
+    let reviewTitle = gen('p');
     let ratingElement = gen('p');
     let reviewElement = gen('p');
     let usernameElement = gen('p');
-
+    reviewTitle.textContent = 'Reviews:';
+    feedbackElement.appendChild(reviewTitle);
     ratingElement.textContent = res['rating'];
     reviewElement.textContent = res['review'];
     usernameElement.textContent = res['username'];
