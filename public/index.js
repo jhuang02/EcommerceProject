@@ -639,8 +639,13 @@
    * @param {object} buyBtn - buy btn element
    * @param {object} feedbackElement - feedback element
    */
-  function appendItemChildren(nameElement, categoryElement, quantityElement, priceElement, buyBtn
-    , feedbackElement) {
+  function appendItemChildren(
+    nameElement,
+    categoryElement,
+    quantityElement,
+    priceElement,
+    buyBtn,
+    feedbackElement) {
     let itemView = id('item-section');
     itemView.appendChild(nameElement);
     itemView.appendChild(categoryElement);
@@ -700,7 +705,7 @@
       loginFailureMsg.textContent = 'Log in to add items to the cart!';
       qs('main').appendChild(loginFailureMsg);
       setTimeout(() => {
-        loginFailureMsg.remove()
+        loginFailureMsg.remove();
         id('home-view').classList.remove('hidden');
       }, ONESEC);
     } else {
@@ -714,26 +719,26 @@
    */
   function processItem(event) {
     let cart = JSON.parse(window.localStorage.getItem(USER));
-      let productId = event.target.parentElement.firstElementChild.id;
-      fetch('/ecommerce/purchase?productId=' + productId, {method: 'POST'})
-        .then(statusCheck)
-        .then(res => res.json())
-        .then(res => {
-          if (event.target.parentElement.id == 'item-section') {
-            event.target.parentElement.childNodes[2].textContent = 'Quantity: ' + res['quantity'];
-          }
-          if (res['quantity'] == 0) {
-            event.target.disabled = true;
-          }
-          if (cart[res['name']] === undefined) {
-            let productData = {'quantity' : 1, 'price': res['price'], 'id': res['id']};
-            cart[res['name']] = productData;
-          } else {
-            cart[res['name']]['quantity'] += 1;
-          }
-          window.localStorage.setItem(USER, JSON.stringify(cart));
-        })
-        .catch(handleError);
+    let productId = event.target.parentElement.firstElementChild.id;
+    fetch('/ecommerce/purchase?productId=' + productId, {method: 'POST'})
+      .then(statusCheck)
+      .then(res => res.json())
+      .then(res => {
+        if (event.target.parentElement.id === 'item-section') {
+          event.target.parentElement.childNodes[2].textContent = 'Quantity: ' + res['quantity'];
+        }
+        if (res['quantity'] === 0) {
+          event.target.disabled = true;
+        }
+        if (cart[res['name']] === undefined) {
+          let productData = {'quantity': 1, 'price': res['price'], 'id': res['id']};
+          cart[res['name']] = productData;
+        } else {
+          cart[res['name']]['quantity'] += 1;
+        }
+        window.localStorage.setItem(USER, JSON.stringify(cart));
+      })
+      .catch(handleError);
   }
 
   /**
@@ -741,7 +746,7 @@
    * @param {string} name - name of HTML element ID
    * @returns {object} - DOM object matching name
    */
-   function id(name) {
+  function id(name) {
     return document.getElementById(name);
   }
 
@@ -803,9 +808,8 @@
   /**
    * This function executes whenever there is an error in the fetch. A failure message
    * element is appended to the activity description.
-   * @param {error} error - the error
    */
-  function handleError(error) {
+  function handleError() {
     let eccomerceArea = id("ecommerce-data");
     eccomerceArea.innerHTML = "";
     let failureMessage = document.createElement("p");

@@ -107,9 +107,8 @@ app.post('/ecommerce/user/new', async (req, res) => {
     try {
       let db = await getDBConnection();
       let checkDuplicateUsernameQry = 'SELECT * FROM user WHERE LOWER(username) = ?';
-      let checkDuplicateUsernameRes = await db.all(
-        checkDuplicateUsernameQry,req.body.username.toLowerCase()
-        );
+      let checkDuplicateUsernameRes =
+      await db.all(checkDuplicateUsernameQry,req.body.username.toLowerCase());
       if (checkDuplicateUsernameRes.length === 1) {
         res.status(SERVER_ERROR)
           .send('User already exists!');
