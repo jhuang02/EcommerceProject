@@ -315,15 +315,15 @@
       article.classList.add('clothing-item');
       cartView.appendChild(article);
     });
-    finishCartView(totalCost)
+    finishCartView(totalCost, cartView)
   }
 
   /**
-   * This function adds the totalCost value to the bottom of the shopping cart view
-   * @param {integer} totalCost is the number that reprsents the total cost of the items in the
-   * shopping cart
+   * Finish appending info to cart view
+   * @param {string} totalCost - total cost in the cart
+   * @param {object} cartView - cart view element
    */
-  function finishCartView(totalCost) {
+  function finishCartView(totalCost, cartView) {
     let priceElement = gen('p');
     let checkoutBtn = gen('button');
     checkoutBtn.textContent = 'Checkout';
@@ -332,7 +332,6 @@
     cartView.append(priceElement);
     cartView.appendChild(checkoutBtn);
   }
-
 
   /**
    * User checksout their items, adding it to their order history and removing the item from the
@@ -348,6 +347,7 @@
       params.append('quantity', cart[item]['quantity']);
       fetch('/ecommerce/cart', {method: 'POST', body: params})
         .then(statusCheck)
+        .then(processCart)
         .catch(handleError);
     });
   }
@@ -650,7 +650,12 @@
         id('home-view').classList.remove('hidden');
       }, ONESEC);
     } else {
-      let cart = JSON.parse(window.localStorage.getItem(USER));
+      processItem(event);
+    }
+  }
+
+  function processItem(event) {
+    let cart = JSON.parse(window.localStorage.getItem(USER));
       let productId = event.target.parentElement.firstElementChild.id;
       fetch('/ecommerce/purchase?productId=' + productId, {method: 'POST'})
         .then(statusCheck)
@@ -669,7 +674,6 @@
           window.localStorage.setItem(USER, JSON.stringify(cart));
         })
         .catch(handleError);
-    }
   }
 
   /**
