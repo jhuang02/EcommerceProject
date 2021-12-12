@@ -298,24 +298,33 @@
     }
     let totalCost = 0;
     Object.keys(userCart).forEach(item => {
-      let article = gen('article');
-      article.classList.add('cart-product');
-      let name = gen('p');
-      let qt = gen('p');
-      let productPrice = gen('p');
-      name.textContent = 'Item: ' + item;
-      let itemQuantity = userCart[item]['quantity'];
-      let itemPrice = userCart[item]['quantity'] * userCart[item]['price'];
-      qt.textContent = 'QT: ' + itemQuantity;
-      productPrice.textContent = 'Price: ' + itemPrice;
-      article.appendChild(name);
-      article.appendChild(qt);
-      article.appendChild(productPrice);
-      totalCost += itemPrice;
-      article.classList.add('clothing-item');
-      cartView.appendChild(article);
+      createCartItem(item, userCart);
+      totalCost += userCart[item]['quantity'] * userCart[item]['price']
     });
-    finishCartView(totalCost, cartView)
+    finishCartView(totalCost, cartView, totalCost);
+  }
+
+  /**
+   * This function creates the HTML element that represents an item in the shopping cart
+   * @param {String} item is the name of an item in the shopping cart
+   */
+  function createCartItem(item, userCart) {
+    let article = gen('article');
+    let cartView = id('cart-view');
+    article.classList.add('cart-product');
+    let name = gen('p');
+    let qt = gen('p');
+    let productPrice = gen('p');
+    name.textContent = 'Item: ' + item;
+    let itemQuantity = userCart[item]['quantity'];
+    let itemPrice = userCart[item]['quantity'] * userCart[item]['price'];
+    qt.textContent = 'QT: ' + itemQuantity;
+    productPrice.textContent = 'Price: ' + itemPrice;
+    article.appendChild(name);
+    article.appendChild(qt);
+    article.appendChild(productPrice);
+    article.classList.add('clothing-item');
+    cartView.appendChild(article);
   }
 
   /**
@@ -347,10 +356,41 @@
       params.append('quantity', cart[item]['quantity']);
       fetch('/ecommerce/cart', {method: 'POST', body: params})
         .then(statusCheck)
-        .then(processCart)
         .catch(handleError);
     });
+
+    processCart();
   }
+
+  /**
+   * This function updates the cartId of the user and resets the current cart/session. It also 
+   * updates the HTML to become a blank shopping cart.
+   */
+  function processCart() {
+    fetch('/ecommerce/cart/update?username=' + USER, {method: "POST"})
+      .then(statusCheck)
+      .then(res => res.text())
+      .then(() => {
+        let cartView = id('cart-view');
+        cartView.innerHTML = '';
+        window.localStorage.setItem(USER, JSON.stringify({}));
+        let successfullTransaction = gen('p');
+        successfullTransaction.textContent = 'Transaction was successfull';
+        qs('main').appendChild(successfullTransaction);
+        setTimeout(() => {
+          let priceElement = gen('p');
+          let checkoutBtn = gen('button');
+          checkoutBtn.textContent = 'Checkout';
+          checkoutBtn.addEventListener('click', checkout);
+          priceElement.textContent = 'total cost: $0';
+          cartView.append(priceElement);
+          cartView.appendChild(checkoutBtn);
+          successfullTransaction.remove();
+        }, ONESEC);
+      })
+      .catch(handleError);
+  }
+
 
   /**
    * Switch to account login view
@@ -497,7 +537,6 @@
     priceElement.textContent = '$' + price;
     buyBtn.textContent = 'Add to Cart!';
 
-
     buyBtn.addEventListener('click', purchaseItem);
     if (quantity === 0) {
       buyBtn.disabled = true;
@@ -509,7 +548,7 @@
     article.appendChild(buyBtn);
     article.classList.add('product');
     article.classList.add('clothing-item');
-    article.addEventListener('click', viewItem)
+    article.addEventListener('click', viewItem);
     nameElement.id = id;
     return article;
   }
@@ -544,8 +583,6 @@
     let categoryElement = gen('p');
     let priceElement = gen('p');
     let buyBtn = gen('button');
-    let feedbackElement = gen('article');
-    feedbackElement.classList.add('item-view-product');
 
     nameElement.textContent = 'Name: ' + capitalize(res['name']);
     nameElement.id = res['id'];
@@ -559,7 +596,26 @@
       buyBtn.disabled = true;
     }
     priceElement.textContent = 'Price: ' + res['price'];
-    fetch('/ecommerce/feedback?productId=' + res['id'])
+
+    let feedbackElement = gen('article');
+    populateFeedbackElement(feedbackElement, res['id']);
+    appendItemChildren(nameElement, categoryElement, quantityElement, priceElement, buyBtn,
+                         feedbackElement);
+
+    if (window.localStorage.getItem('isLoggedIn') === 'true') {
+      id('feedback-form').classList.remove('hidden');
+    }
+  }
+
+  /**
+   * This function retrieves all the feedbacks for a product and creates an HTML element for each
+   * feedback that is appeneded to the Feedback Element (element that holds all the feedback)
+   * @param {Object} feedbackElement is the HTML element that represents the feedbacks from the
+   * users
+   */
+  function populateFeedbackElement(feedbackElement, id) {
+    feedbackElement.classList.add('item-view-product');
+    fetch('/ecommerce/feedback?productId=' + id)
       .then(statusCheck)
       .then(res => res.json())
       .then(res => {
@@ -569,12 +625,6 @@
         })
       })
       .catch(handleError);
-      appendItemChildren(nameElement, categoryElement, quantityElement, priceElement, buyBtn
-        , feedbackElement);
-
-    if (window.localStorage.getItem('isLoggedIn') === 'true') {
-      id('feedback-form').classList.remove('hidden');
-    }
   }
 
   /**
@@ -661,7 +711,9 @@
         .then(statusCheck)
         .then(res => res.json())
         .then(res => {
-          event.target.parentElement.childNodes[1].textContent = 'QT: ' + res['quantity'];
+          if (event.target.parentElement.id == 'item-section') {
+            event.target.parentElement.childNodes[2].textContent = 'Quantity: ' + res['quantity'];
+          }
           if (res['quantity'] == 0) {
             event.target.disabled = true;
           }

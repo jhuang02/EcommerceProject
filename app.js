@@ -328,7 +328,7 @@ app.get('/ecommerce/feedback', async (req, res) => {
           .send(SERVER_ERROR_MSG);
       }
       await db.close();
-    } catch {
+    } catch (error) {
       res.status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG);
     }
@@ -338,7 +338,7 @@ app.get('/ecommerce/feedback', async (req, res) => {
 /**
  * This function verifies that all the parameters in a request are valid and non-undefined
  * @param {Object} params is an array of the all the parameters from requests
- * @returns 
+ * @returns {boolean}
  * - true if and only if all the params have non-undefined values.
  * - Otherwise, false.
  */
@@ -355,7 +355,7 @@ function checkValidParams(params) {
  * This function checks that the username of the user sending the request exists
  * in the database
  * @param {string} username is the username of the user sending the request
- * @returns 
+ * @returns {integer}
  * - 1 if the username exists in the database
  * - -1 if the username doesn't exist in the databse
  * - 0 if there was an internal 500 server error
@@ -381,7 +381,7 @@ async function checkUsernameInDatabase(username) {
  * This function checks that the productId of the product exists
  * in the database
  * @param {string} product is the id of the product being sent in the the request
- * @returns 
+ * @returns {integer}
  * - 1 if the product exists in the database
  * - -1 if the product doesn't exist in the databse
  * - 0 if there was an internal 500 server error
