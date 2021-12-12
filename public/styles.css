@@ -43,12 +43,28 @@ nav {
   margin: 1.5vh;
 }
 
+.history-item {
+  background-color: #e6e4e4;
+  padding: 0.5vh;
+  border-radius: 10px;
+  font-size: 10pt;
+  margin: 1vh;
+}
+
+.feedback {
+  background-color: #C4C4C0;
+  padding: 1.5vh;
+  border-radius: 10px;
+  font-size: 11pt;
+  margin: 1.5vh;
+}
+
 .clothing-item:hover {
   cursor: pointer;
 }
 
 .cart {
-  background-color: rgb(110, 209, 255);
+  background-color: rgb(163, 162, 162);
 }
 
 .compact {
