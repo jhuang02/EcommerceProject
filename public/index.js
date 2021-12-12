@@ -569,11 +569,11 @@ function finishCartView(totalCost) {
     buyBtn.textContent = 'Add to Cart!';
 
     buyBtn.addEventListener('click', purchaseItem);
-    if (res['quantity'] === 0) {
+    if (resp['quantity'] === 0) {
       buyBtn.disabled = true;
     }
-    priceElement.textContent = 'Price: ' + res['price'];
-    fetch('/ecommerce/feedback?productId=' + res['id'])
+    priceElement.textContent = 'Price: ' + resp['price'];
+    fetch('/ecommerce/feedback?productId=' + resp['id'])
       .then(statusCheck)
       .then(res => res.json())
       .then(res => {
