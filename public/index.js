@@ -299,14 +299,15 @@
     let totalCost = 0;
     Object.keys(userCart).forEach(item => {
       createCartItem(item, userCart);
-      totalCost += userCart[item]['quantity'] * userCart[item]['price']
+      totalCost += userCart[item]['quantity'] * userCart[item]['price'];
     });
     finishCartView(totalCost, cartView, totalCost);
   }
 
   /**
    * This function creates the HTML element that represents an item in the shopping cart
-   * @param {String} item is the name of an item in the shopping cart
+   * @param {String} item - is the name of an item in the shopping cart
+   * @param {String} userCart - the userCart element
    */
   function createCartItem(item, userCart) {
     let article = gen('article');
@@ -363,7 +364,7 @@
   }
 
   /**
-   * This function updates the cartId of the user and resets the current cart/session. It also 
+   * This function updates the cartId of the user and resets the current cart/session. It also
    * updates the HTML to become a blank shopping cart.
    */
   function processCart() {
@@ -390,7 +391,6 @@
       })
       .catch(handleError);
   }
-
 
   /**
    * Switch to account login view
@@ -783,11 +783,11 @@
    * @param {string} words the text to capitalize
    * @returns {string} the capitalized string
    */
-   function capitalize(words) {
-    let text = words.split(' ')
-    let capitalizedText = ''
+  function capitalize(words) {
+    let text = words.split(' ');
+    let capitalizedText = '';
     for (let i = 0; i < text.length; i++) {
-      capitalizedText += text[i].charAt(0).toUpperCase() + text[i].slice(1) + ' '
+      capitalizedText += text[i].charAt(0).toUpperCase() + text[i].slice(1) + ' ';
     }
     return capitalizedText.trim();
   }
@@ -798,7 +798,6 @@
    * @param {error} error - the error
    */
   function handleError(error) {
-    console.log(error);
     let eccomerceArea = id("ecommerce-data");
     eccomerceArea.innerHTML = "";
     let failureMessage = document.createElement("p");
