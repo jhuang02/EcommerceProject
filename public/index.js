@@ -23,14 +23,14 @@
   function init() {
     fetchAllProducts();
     changeView('home-view');
-    buttonBehaviorOne();
-    buttonBehaviorTwo();
+    addButtonBehaviorOne();
+    addButtonBehaviorTwo();
   }
 
   /**
    * Link buttons with their respective behavior functions
    */
-  function buttonBehaviorOne() {
+  function addButtonBehaviorOne() {
     let viewAccountBtn = id('account-btn');
     let searchBtn = id('search-btn');
     let searchInput = id('search-term');
@@ -59,7 +59,7 @@
   /**
    * Link buttons with their respective behavior functions
    */
-  function buttonBehaviorTwo() {
+  function addButtonBehaviorTwo() {
     let homeBtn = id('home-btn');
     let homeToggleBtn = id('change-home-view-btn');
     let homeFilter = id('home-filter');
@@ -87,6 +87,10 @@
 
     fetch('/ecommerce/feedback/new', {method: 'POST', body: params})
       .then(statusCheck)
+      .then(() => {
+        id('rating').value = '';
+        id('review').value = '';
+      })
       .catch(handleError);
   }
 
@@ -323,9 +327,6 @@
       params.append('quantity', cart[item]['quantity']);
       fetch('/ecommerce/cart', {method: 'POST', body: params})
         .then(statusCheck)
-        .then(res => res.text())
-        // what can I do here
-        .then()
         .catch(handleError);
     });
 
@@ -433,6 +434,7 @@
     if (resp === 'verified') {
       id('incorrect-message').classList.add('hidden');
       window.localStorage.setItem('user', username);
+      window.localStorage.setItem('isLoggedIn', 'true');
       USER = username;
       PASS = password;
       let cart = JSON.parse(window.localStorage.getItem(USER));
@@ -463,6 +465,7 @@
    * @param {object} res - the product server data all products
    */
   function processAll(res) {
+    window.localStorage.setItem('isLoggedIn', 'false');
     res = res['products'];
     for (let i = 0; i < res.length; i++) {
       let productArticle = generateProductArticle(res[i]);
@@ -526,8 +529,7 @@
    */
   function viewItem(event) {
     if (event.target.textContent !== 'Add to Cart!') {
-
-      PRODUCT_ID = this.id;
+      PRODUCT_ID = this.firstElementChild.id;
 
       changeView('item-view');
       fetch('/ecommerce/products?productId=' + this.firstElementChild.id)
@@ -543,8 +545,9 @@
    * @param {object} res - the server response
    */
   function populateItemView(res) {
+    id('item-section').innerHTML = '';
+    id('review-section').innerHTML = '';
     res = res['products'][0];
-
     let nameElement = gen('p');
     let quantityElement = gen('p');
     let categoryElement = gen('p');
@@ -576,18 +579,21 @@
       })
       .catch(handleError);
 
+    if (window.localStorage.getItem('isLoggedIn') === 'true') {
+      id('feedback-form').classList.remove('hidden');
+    }
+    
     let itemView = id('item-section');
-
     itemView.appendChild(nameElement);
     itemView.appendChild(categoryElement);
     itemView.appendChild(quantityElement);
     itemView.appendChild(priceElement);
     itemView.appendChild(buyBtn);
-
     itemView.appendChild(feedbackElement);
   }
 
   function populateFeedback(res, feedbackElement) {
+    let reviewSection = id('review-section');
     let feedbackReview = gen('article');
     feedbackReview.classList.add('feedback');
     let reviewTitle = gen('p');
@@ -602,7 +608,8 @@
     feedbackReview.appendChild(usernameElement);
     feedbackReview.appendChild(ratingElement);
     feedbackReview.appendChild(reviewElement);
-    feedbackElement.appendChild(feedbackReview);
+    reviewSection.appendChild(reviewTitle);
+    reviewSection.appendChild(feedbackReview);
   }
 
   /**

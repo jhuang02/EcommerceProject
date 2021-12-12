@@ -185,7 +185,7 @@ app.post('/ecommerce/cart', async (req, res) => {
       let validProductQry = 'Select id FROM product WHERE id = ?;';
       let cartId = await db.all(validUserQry, req.body.username);
       let validProduct = await db.all(validProductQry, req.body.productId);
-      params.insert(2, cartId[0]['cartId']);
+      params.splice(2, 0, cartId[0]['cartId']);
       if (cartId === undefined || validProduct === undefined) {
         res.status(CLIENT_ERROR)
           .send('username doesnt exist.');
@@ -197,6 +197,7 @@ app.post('/ecommerce/cart', async (req, res) => {
       }
       await db.close();
     } catch(error) {
+      console.log(error)
       res.status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG);
     }
@@ -241,7 +242,7 @@ app.post('/ecommerce/cart/update', async (req, res) => {
  */
 app.get('/ecommerce/history', async (req, res) => {
   let params = [req.query.username];
-  if (!checkValidParams[params]) {
+  if (!checkValidParams(params)) {
     res.type('text').status(CLIENT_ERROR)
       .send(INVALID_PARAMETERS);
   } else {
@@ -262,6 +263,7 @@ app.get('/ecommerce/history', async (req, res) => {
       }
       await db.close();
     } catch (error) {
+      console.log(error)
       res.type('text').status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG);
     }
@@ -270,6 +272,7 @@ app.get('/ecommerce/history', async (req, res) => {
 
 app.post('/ecommerce/feedback/new', async (req, res) => {
   let params = [req.body.productId, req.body.username, req.body.rating, req.body.review];
+  console.log(params);
   if (!checkValidParams(params)) {
     res.status(CLIENT_ERROR)
       .send(INVALID_PARAMETERS);
