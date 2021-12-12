@@ -40,19 +40,17 @@ app.get('/ecommerce/products', async (req, res) => {
       qry = 'SELECT * FROM product;';
       retrievedData = await db.all(qry);
       res.type('json').send({'products': retrievedData});
+    } else if (productName === undefined) {
+      qry = 'SELECT * FROM product WHERE id = ?;';
+      retrievedData = await db.all(qry, productId);
+      res.type('json').send({'products': retrievedData});
+    } else if (productId === undefined) {
+      qry = 'SELECT * FROM product WHERE name = ?;';
+      retrievedData = await db.all(qry, productName);
+      res.type('json').send({'products': retrievedData});
     } else {
-      if (productName === undefined) {
-        qry = 'SELECT * FROM product WHERE id = ?;';
-        retrievedData = await db.all(qry, productId);
-        res.type('json').send({'products': retrievedData});
-      } else if (productId === undefined) {
-        qry = 'SELECT * FROM product WHERE name = ?;';
-        retrievedData = await db.all(qry, productName);
-        res.type('json').send({'products': retrievedData});
-      } else {
         res.type('text').status(CLIENT_ERROR)
-          .send('Please search using either Product Name or Product ID!')
-      }
+          .send('Please search using either Product Name or Product ID!');
     }
     await db.close();
   } catch (error) {
@@ -66,9 +64,8 @@ app.get('/ecommerce/products', async (req, res) => {
  */
 app.post('/ecommerce/authentication', async (req, res) => {
   let params = [req.body.username, req.body.password];
-  res.type('text');
   if (!checkValidParams(params)) {
-    res.status(CLIENT_ERROR)
+    res.type('text').status(CLIENT_ERROR)
       .send(INVALID_PARAMETERS);
   } else {
     try {
@@ -78,20 +75,20 @@ app.post('/ecommerce/authentication', async (req, res) => {
         let qry = 'SELECT COUNT(*) FROM user WHERE username = ? and password = ?';
         let retrievedData = await db.all(qry, params);
         if (retrievedData[0]['COUNT(*)'] === 0) {
-          res.send('failed');
+          res.type('text').send('failed');
         } else {
-          res.send('verified');
+          res.type('text').send('verified');
         }
       } else if (isUsernameInDatabase === -1) {
-        res.status(CLIENT_ERROR)
+        res.type('text').status(CLIENT_ERROR)
           .send('Yikes. Username doesn\'t exist!');
       } else {
-        res.status(SERVER_ERROR)
+        res.type('text').status(SERVER_ERROR)
           .send(SERVER_ERROR_MSG);
       }
       await db.close();
     } catch (error) {
-      res.status(SERVER_ERROR)
+      res.type('text').status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG);
     }
   }
@@ -112,19 +109,17 @@ app.post('/ecommerce/user/new', async (req, res) => {
       let checkDuplicateUsernameQry = 'SELECT * FROM user WHERE LOWER(username) = ?';
       let checkDuplicateUsernameRes = await db.all(checkDuplicateUsernameQry,
                                                    req.body.username.toLowerCase());
-      console.log(checkDuplicateUsernameRes)
       if (checkDuplicateUsernameRes.length === 1) {
         res.status(SERVER_ERROR)
           .send('User already exists!');
       } else {
         let qry = 'INSERT INTO user (username, password, cartId, email) VALUES (?, ?, 0, ?);';
         await db.run(qry, params);
-        res.send('User added!')
+        res.send('User added!');
         await db.close();
       }
 
     } catch (error) {
-      console.log(error)
       res.status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG);
     }
@@ -197,7 +192,6 @@ app.post('/ecommerce/cart', async (req, res) => {
       }
       await db.close();
     } catch(error) {
-      console.log(error)
       res.status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG);
     }
@@ -263,7 +257,6 @@ app.get('/ecommerce/history', async (req, res) => {
       }
       await db.close();
     } catch (error) {
-      console.log(error)
       res.type('text').status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG);
     }
@@ -275,7 +268,6 @@ app.get('/ecommerce/history', async (req, res) => {
  */
 app.post('/ecommerce/feedback/new', async (req, res) => {
   let params = [req.body.productId, req.body.username, req.body.rating, req.body.review];
-  console.log(params);
   if (!checkValidParams(params)) {
     res.type('text').status(CLIENT_ERROR)
       .send(INVALID_PARAMETERS);
