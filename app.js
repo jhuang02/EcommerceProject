@@ -188,7 +188,7 @@ app.post('/ecommerce/cart', async (req, res) => {
       params.splice(2, 0, cartId[0]['cartId']);
       if (cartId === undefined || validProduct === undefined) {
         res.status(CLIENT_ERROR)
-          .send('username doesnt exist.');
+          .send('Username or product ID doesn\'t exist in the database.');
       } else {
         let insertQry = 'INSERT INTO shopping (username, productId, cartId, quantity) ' +
                         'VALUES (?, ?, ?, ?);';
@@ -270,11 +270,14 @@ app.get('/ecommerce/history', async (req, res) => {
   }
 });
 
+/**
+ * Endpoint to add new feedback for a product
+ */
 app.post('/ecommerce/feedback/new', async (req, res) => {
   let params = [req.body.productId, req.body.username, req.body.rating, req.body.review];
   console.log(params);
   if (!checkValidParams(params)) {
-    res.status(CLIENT_ERROR)
+    res.type('text').status(CLIENT_ERROR)
       .send(INVALID_PARAMETERS);
   } else {
     try {
@@ -301,6 +304,9 @@ app.post('/ecommerce/feedback/new', async (req, res) => {
   }
 });
 
+/**
+ * endpoint to retrieve all the feedbacks for a product
+ */
 app.get('/ecommerce/feedback', async (req, res) => {
   let productId = req.query.productId;
 
@@ -329,6 +335,13 @@ app.get('/ecommerce/feedback', async (req, res) => {
   }
 });
 
+/**
+ * This function verifies that all the parameters in a request are valid and non-undefined
+ * @param {Object} params is an array of the all the parameters from requests
+ * @returns 
+ * - true if and only if all the params have non-undefined values.
+ * - Otherwise, false.
+ */
 function checkValidParams(params) {
   params.forEach(param => {
     if (param === undefined) {
@@ -338,6 +351,15 @@ function checkValidParams(params) {
   return true;
 }
 
+/**
+ * This function checks that the username of the user sending the request exists
+ * in the database
+ * @param {string} username is the username of the user sending the request
+ * @returns 
+ * - 1 if the username exists in the database
+ * - -1 if the username doesn't exist in the databse
+ * - 0 if there was an internal 500 server error
+ */
 async function checkUsernameInDatabase(username) {
   try {
     let isUsernameInDatabase = -1;
@@ -355,6 +377,15 @@ async function checkUsernameInDatabase(username) {
   }
 }
 
+/**
+ * This function checks that the productId of the product exists
+ * in the database
+ * @param {string} product is the id of the product being sent in the the request
+ * @returns 
+ * - 1 if the product exists in the database
+ * - -1 if the product doesn't exist in the databse
+ * - 0 if there was an internal 500 server error
+ */
 async function checkProductInDatabase(product) {
   try {
     let isProductInDatabase = -1;
