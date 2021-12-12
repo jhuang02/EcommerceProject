@@ -3,7 +3,7 @@ header {
   height: 5vh;
   background-color: blue;
   align-items: center;
-  background-color: rgb(14, 195, 195);
+  background-color: rgb(18, 84, 207);
   position: sticky;
   top: 0;
   height: 15vh;
@@ -11,7 +11,7 @@ header {
   justify-content: space-around;
 }
 
-p, h2, button, form, select{
+p, h2, button, form, select, label{
   font-family: 'Poppins', sans-serif;
 }
 
@@ -48,7 +48,7 @@ nav {
 }
 
 .cart {
-  background-color: turquoise;
+  background-color: rgb(110, 209, 255);
 }
 
 .compact {
@@ -60,5 +60,9 @@ nav {
 
 #login > p {
   font-size: 10pt;
+}
+
+button, input {
+  border-radius: 3px;
 }
 

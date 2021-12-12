@@ -106,9 +106,7 @@
 
     if (filter !== 'all') {
       for (let i = 0; i < productArray.length; i++) {
-        if (productArray[i].lastChild.previousSibling.previousSibling.textContent !== filter) {
-          console.log(filter);
-          console.log(productArray[i].lastChild.previousSibling.previousSibling.textContent);
+        if (productArray[i].lastChild.previousSibling.previousSibling.textContent !== capitalize(filter)) {
           productArray[i].classList.add('hidden');
         }
       }
@@ -136,7 +134,7 @@
     if (!USER || !PASS) {
       changeView('history-not-logged-view');
     } else {
-      changeView('history-view');
+        changeView('history-view');
       fetch('/ecommerce/history?username=' + USER)
       .then(statusCheck)
       .then(res => res.json())
@@ -149,6 +147,11 @@
    * Change to the history view if logged in and fetch user order history
    */
   function populateHistoryView(res) {
+    let history = id('history-view');
+    id('history-view').innerHTML = '';
+    let historyTitle = gen('h2');
+    historyTitle.textContent = 'Order History:';
+    history.appendChild(historyTitle);
     res = res['history'];
     console.log(res);
     let cartId;
@@ -174,7 +177,8 @@
       itemElement.classList.add('clothing-item');
       orderElement.appendChild(itemElement);
     });
-    id('history-view').appendChild(orderElement);
+
+    history.appendChild(orderElement);
   }
 
   /**
@@ -182,7 +186,7 @@
    */
   function fetchSearch() {
     let searchTerm = id('search-term').value;
-    fetch('/ecommerce/products?search=' + searchTerm)
+    fetch('/ecommerce/products?productName=' + searchTerm.toLowerCase())
       .then(statusCheck)
       .then(resp => resp.json())
       .then(processSearch)
@@ -203,6 +207,7 @@
     }
 
     resp = resp.products;
+    console.log(resp);
     for (let i = 0; i < resp.length; i++) {
       let productArticle = generateProductArticle(resp[i]);
       results.appendChild(productArticle);
@@ -249,6 +254,9 @@
       changeView('cart-view');
       let cartView = id('cart-view');
       cartView.innerHTML = '';
+      let cartText = gen('h2');
+      cartText.textContent = "Your Shopping Cart:"
+      cartView.appendChild(cartText);
       let userCart = JSON.parse(window.localStorage.getItem(USER));
       if (userCart === null) {
         userCart = {}
@@ -276,7 +284,7 @@
       let checkoutBtn = gen('button');
       checkoutBtn.textContent = 'Checkout';
       checkoutBtn.addEventListener('click', checkout);
-      priceElement.textContent = 'total cost: $' + totalCost;
+      priceElement.textContent = 'Total Cost: $' + totalCost;
       cartView.append(priceElement);
       cartView.appendChild(checkoutBtn);
     }
@@ -458,11 +466,11 @@
     let categoryElement = gen('p');
     let priceElement = gen('p');
     let buyBtn = gen('button');
-  
 
-    nameElement.textContent = name;
+
+    nameElement.textContent = capitalize(name);
     // quantityElement.textContent = 'QT: ' + quantity;
-    categoryElement.textContent = category;
+    categoryElement.textContent = capitalize(category);
     categoryElement.classList.add('category');
     priceElement.textContent = '$' + price;
     buyBtn.textContent = 'Add to Cart!';
@@ -587,7 +595,7 @@
       let cart = JSON.parse(window.localStorage.getItem(USER));
       let productName = event.target.parentElement.firstElementChild.textContent;
       console.log(productName);
-      fetch('/ecommerce/purchase?productName=' + productName, {method: 'POST'})
+      fetch('/ecommerce/purchase?productName=' + productName.toLowerCase(), {method: 'POST'})
         .then(statusCheck)
         .then(res => res.json())
         .then(res => {
@@ -656,6 +664,20 @@
       throw new Error(await res.text());
     }
     return res;
+  }
+
+  /**
+   * This function capitalizes the first letter of a chunk of text
+   * @param {string} words the text to capitalize
+   * @returns {string} the capitalized string
+   */
+   function capitalize(words) {
+    let text = words.split(' ')
+    let capitalizedText = ''
+    for (let i = 0; i < text.length; i++) {
+      capitalizedText += text[i].charAt(0).toUpperCase() + text[i].slice(1) + ' '
+    }
+    return capitalizedText.trim();
   }
 
   /**
