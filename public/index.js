@@ -517,7 +517,7 @@
   /**
    * Generate all the articles for each product
    * @param {object} product - the product server data for a product
-   * @returns the product article
+   * @returns {object} - the product article
    */
   function generateProductArticle(product) {
     let name = product['name'];
@@ -731,7 +731,7 @@
           event.target.disabled = true;
         }
         if (cart[res['name']] === undefined) {
-          let productData = {'quantity': 1, 'price': res['price'], 'id': res['id']};
+          let productData = {'quantity' : 1, 'price': res['price'], 'id': res['id']};
           cart[res['name']] = productData;
         } else {
           cart[res['name']]['quantity'] += 1;
