@@ -61,7 +61,10 @@
     logoutBtn.addEventListener('click', logout);
     homeFilter.addEventListener('change', () => filterView('home-filter'));
     searchFilter.addEventListener('change', () => filterView('search-filter'));
-    backFromItemViewBtn.addEventListener('click', () => changeView('home-view'));
+    backFromItemViewBtn.addEventListener('click', () => {
+      id('item-section').innerHTML = '';
+      changeView('home-view');
+    });
   }
 
   function submitFeedback(event) {
@@ -497,7 +500,6 @@
   }
 
   function populateItemView(res) {
-    console.log(res);
     res = res['products'][0];
 
     let nameElement = gen('p');
@@ -520,17 +522,21 @@
     priceElement.textContent = 'Price: ' + res['price'];
     fetch('/ecommerce/feedback?productId=' + res['id'])
       .then(statusCheck)
-      .then(resp => resp.json())
-      .then(resp => {
-        populateFeedback(resp, feedbackElement)
+      .then(res => res.json())
+      .then(res => {
+        res = res['feedback'];
+        res.forEach(item => {
+          populateFeedback(item, feedbackElement);
+        })
       })
       .catch(handleError);
 
     let itemView = id('item-section');
-    itemView.prepend(buyBtn);
-    itemView.prepend(priceElement);
-    itemView.prepend(categoryElement);
-    itemView.prepend(nameElement);
+
+    itemView.appendChild(nameElement);
+    itemView.appendChild(categoryElement);
+    itemView.appendChild(priceElement);
+    itemView.appendChild(buyBtn);
 
     itemView.appendChild(feedbackElement);
   }

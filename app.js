@@ -115,17 +115,12 @@ app.post('/ecommerce/user/new', async (req, res) => {
   } else {
     try {
       let db = await getDBConnection();
-      if (retrievedProductId.length === 0) {
-        res.status(CLIENT_ERROR)
-          .send('Yikes. Username doesn\' exist!');
-      } else {
-        let qry = 'INSERT INTO user (username, password, cartId) VALUES (?, ?, 0);';
-        await db.run(qry, [username, password]);
-        res.send('User added!')
-      }
-
+      let qry = 'INSERT INTO user (username, password, cartId) VALUES (?, ?, 0);';
+      await db.run(qry, [username, password]);
+      res.send('User added!')
       await db.close();
     } catch (error) {
+      console.log(error);
       res.status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG);
     }
@@ -329,7 +324,7 @@ app.get('/ecommerce/feedback', async (req, res) => {
     } else {
       let getFeedbackQry = 'SELECT * FROM feedback WHERE productId = ?;';
       let getFeedbackRes = await db.all(getFeedbackQry, productId);
-      res.type('json').send(getFeedbackRes[0]);
+      res.type('json').send({'feedback': getFeedbackRes});
     }
     await db.close();
   }
