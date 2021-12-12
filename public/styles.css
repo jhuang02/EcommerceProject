@@ -31,8 +31,19 @@ nav {
   align-self: center;
 }
 
+#feedback-form {
+  margin-top: 3%;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 3%
+}
+
+#rating, #review, #feedback-btn {
+  width: 20%;
+}
+
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .product {

@@ -23,14 +23,14 @@
   function init() {
     fetchAllProducts();
     changeView('home-view');
-    buttonBehaviorOne();
-    buttonBehaviorTwo();
+    addButtonBehaviorOne();
+    addButtonBehaviorTwo();
   }
 
   /**
    * Link buttons with their respective behavior functions
    */
-  function buttonBehaviorOne() {
+  function addButtonBehaviorOne() {
     let viewAccountBtn = id('account-btn');
     let searchBtn = id('search-btn');
     let searchInput = id('search-term');
@@ -59,7 +59,7 @@
   /**
    * Link buttons with their respective behavior functions
    */
-  function buttonBehaviorTwo() {
+  function addButtonBehaviorTwo() {
     let homeBtn = id('home-btn');
     let homeToggleBtn = id('change-home-view-btn');
     let homeFilter = id('home-filter');
@@ -87,6 +87,10 @@
 
     fetch('/ecommerce/feedback/new', {method: 'POST', body: params})
       .then(statusCheck)
+      .then(() => {
+        id('rating').value = '';
+        id('review').value = '';
+      })
       .catch(handleError);
   }
 
@@ -330,9 +334,6 @@ function finishCartView(totalCost) {
       params.append('quantity', cart[item]['quantity']);
       fetch('/ecommerce/cart', {method: 'POST', body: params})
         .then(statusCheck)
-        .then(res => res.text())
-        // what can I do here
-        .then(processCart)
         .catch(handleError);
     });
   }
@@ -442,6 +443,7 @@ function finishCartView(totalCost) {
     if (resp === 'verified') {
       id('incorrect-message').classList.add('hidden');
       window.localStorage.setItem('user', username);
+      window.localStorage.setItem('isLoggedIn', 'true');
       USER = username;
       PASS = password;
       let cart = JSON.parse(window.localStorage.getItem(USER));
@@ -472,6 +474,7 @@ function finishCartView(totalCost) {
    * @param {object} res - the product server data all products
    */
   function processAll(res) {
+    window.localStorage.setItem('isLoggedIn', 'false');
     res = res['products'];
     for (let i = 0; i < res.length; i++) {
       let productArticle = generateProductArticle(res[i]);
@@ -524,8 +527,8 @@ function finishCartView(totalCost) {
     article.appendChild(buyBtn);
     article.classList.add('product');
     article.classList.add('clothing-item');
-    article.addEventListener('click', viewItem);
-    article.id = id;
+    article.addEventListener('click', viewItem)
+    nameElement.id = id;
     return article;
   }
 
@@ -535,11 +538,10 @@ function finishCartView(totalCost) {
    */
   function viewItem(event) {
     if (event.target.textContent !== 'Add to Cart!') {
-
-      PRODUCT_ID = this.id;
+      PRODUCT_ID = this.firstElementChild.id;
 
       changeView('item-view');
-      fetch('/ecommerce/products?productId=' + this.id)
+      fetch('/ecommerce/products?productId=' + this.firstElementChild.id)
         .then(statusCheck)
         .then(res => res.json())
         .then(populateItemView)
@@ -552,8 +554,9 @@ function finishCartView(totalCost) {
    * @param {object} res - the server response
    */
   function populateItemView(res) {
+    id('item-section').innerHTML = '';
+    id('review-section').innerHTML = '';
     res = res['products'][0];
-
     let nameElement = gen('p');
     let quantityElement = gen('p');
     let categoryElement = gen('p');
@@ -563,6 +566,7 @@ function finishCartView(totalCost) {
     feedbackElement.classList.add('item-view-product');
 
     nameElement.textContent = 'Name: ' + capitalize(res['name']);
+    nameElement.id = res['id'];
     quantityElement.textContent = 'Quantity: ' + res['quantity'];
     categoryElement.textContent = 'Category: ' + capitalize(res['category']);
     priceElement.textContent = '$' + res['price'];
@@ -585,6 +589,10 @@ function finishCartView(totalCost) {
       .catch(handleError);
       appendItemChildren(nameElement, categoryElement, quantityElement, priceElement, buyBtn
         , feedbackElement);
+
+    if (window.localStorage.getItem('isLoggedIn') === 'true') {
+      id('feedback-form').classList.remove('hidden');
+    }
   }
 
   /**
@@ -613,6 +621,7 @@ function finishCartView(totalCost) {
    * @param {object} feedbackElement - feedback element
    */
   function populateFeedback(res, feedbackElement) {
+    let reviewSection = id('review-section');
     let feedbackReview = gen('article');
     feedbackReview.classList.add('feedback');
     let reviewTitle = gen('p');
@@ -627,7 +636,8 @@ function finishCartView(totalCost) {
     feedbackReview.appendChild(usernameElement);
     feedbackReview.appendChild(ratingElement);
     feedbackReview.appendChild(reviewElement);
-    feedbackElement.appendChild(feedbackReview);
+    reviewSection.appendChild(reviewTitle);
+    reviewSection.appendChild(feedbackReview);
   }
 
   /**
@@ -648,7 +658,6 @@ function finishCartView(totalCost) {
    * Purchase item and add it to the user's order history
    */
   function purchaseItem(event) {
-    console.log('ugh: ', USER)
     if (USER === undefined) {
       id('home-view').classList.add('hidden');
       let loginFailureMsg = gen('id');
@@ -660,9 +669,8 @@ function finishCartView(totalCost) {
       }, ONESEC);
     } else {
       let cart = JSON.parse(window.localStorage.getItem(USER));
-      let productName = event.target.parentElement.firstElementChild.textContent.split(' ')[1];
-      console.log(productName);
-      fetch('/ecommerce/purchase?productName=' + productName.toLowerCase(), {method: 'POST'})
+      let productId = event.target.parentElement.firstElementChild.id;
+      fetch('/ecommerce/purchase?productId=' + productId, {method: 'POST'})
         .then(statusCheck)
         .then(res => res.json())
         .then(res => {

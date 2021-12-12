@@ -38,7 +38,6 @@
             <select name='filter-term' id='home-filter'>
               <option value='all'>All</option>
               <option value='pants'>Pants</option>
-              <option value='shirts'>Shirts</option>
               <option value='coats'>Coats</option>
               <option value='electronics'>Electronics</option>
             </select>
@@ -52,7 +51,6 @@
             <select name='filter-term' id='search-filter'>
               <option value='all'>All</option>
               <option value='pants'>Pants</option>
-              <option value='shirts'>Shirts</option>
               <option value='coats'>Coats</option>
               <option value='electronics'>Electronics</option>
             </select>
@@ -109,7 +107,6 @@
         </section>
 
         <section id='cart-view' class='hidden'>
-          <p>cart-view</p>
         </section>
 
         <section id='item-view' class='hidden'>
@@ -123,8 +120,11 @@
             <input type='text' id='rating' name='rating' required>
             <label for='review'>What feedback do you have?</label>
             <input type='text' id='review' name='review' required>
-            <button>Submit Feedback!</button>
+            <button id='feedback-btn'>Submit Feedback!</button>
           </form>
+
+          <article id='review-section'>
+          </article>
 
         </section>
 

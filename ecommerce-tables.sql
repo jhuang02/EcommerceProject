@@ -1,9 +1,11 @@
 CREATE TABLE shopping (
-  username INTEGER PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT,
   productId INTEGER,
   cartId INTEGER,
   quantity INTEGER,
-  FOREIGN KEY(productid) references product(id)
+  FOREIGN KEY(productid) references product(id),
+  FOREIGN KEY(username) references user(username)
 );
 
 CREATE TABLE user (
@@ -28,10 +30,4 @@ CREATE TABLE feedback (
   review TEXT,
   FOREIGN KEY(productid) references product(id),
   FOREIGN KEY(username) references user(username)
-);
-
-CREATE TABLE history (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  userid INTEGER,
-  FOREIGN KEY(userid) references user(id)
 );

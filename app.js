@@ -45,7 +45,6 @@ app.get('/ecommerce/products', async (req, res) => {
         qry = 'SELECT * FROM product WHERE id = ?;';
         retrievedData = await db.all(qry, productId);
         res.type('json').send({'products': retrievedData});
-        console.log(retrievedData)
       } else if (productId === undefined) {
         qry = 'SELECT * FROM product WHERE name = ?;';
         retrievedData = await db.all(qry, productName);
@@ -55,10 +54,8 @@ app.get('/ecommerce/products', async (req, res) => {
           .send('Please search using either Product Name or Product ID!')
       }
     }
-
     await db.close();
   } catch (error) {
-    console.log(error);
     res.type('text').status(SERVER_ERROR)
       .send(SERVER_ERROR_MSG);
   }
@@ -76,7 +73,7 @@ app.post('/ecommerce/authentication', async (req, res) => {
   } else {
     try {
       let db = await getDBConnection();
-      let isUsernameInDatabase = checkUsernameInDatabase(req.body.username);
+      let isUsernameInDatabase = await checkUsernameInDatabase(req.body.username);
       if (isUsernameInDatabase === 1) {
         let qry = 'SELECT COUNT(*) FROM user WHERE username = ? and password = ?';
         let retrievedData = await db.all(qry, params);
@@ -94,7 +91,6 @@ app.post('/ecommerce/authentication', async (req, res) => {
       }
       await db.close();
     } catch (error) {
-      console.log(error);
       res.status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG);
     }
@@ -113,12 +109,22 @@ app.post('/ecommerce/user/new', async (req, res) => {
   } else {
     try {
       let db = await getDBConnection();
-      let qry = 'INSERT INTO user (username, password, cartId) VALUES (?, ?, 0);';
-      await db.run(qry, params);
-      res.send('User added!')
-      await db.close();
+      let checkDuplicateUsernameQry = 'SELECT * FROM user WHERE LOWER(username) = ?';
+      let checkDuplicateUsernameRes = await db.all(checkDuplicateUsernameQry,
+                                                   req.body.username.toLowerCase());
+      console.log(checkDuplicateUsernameRes)
+      if (checkDuplicateUsernameRes.length === 1) {
+        res.status(SERVER_ERROR)
+          .send('User already exists!');
+      } else {
+        let qry = 'INSERT INTO user (username, password, cartId) VALUES (?, ?, 0);';
+        await db.run(qry, params);
+        res.send('User added!')
+        await db.close();
+      }
+
     } catch (error) {
-      console.log(error);
+      console.log(error)
       res.status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG);
     }
@@ -129,17 +135,17 @@ app.post('/ecommerce/user/new', async (req, res) => {
  * Endpoint for when a user purchases a product, reduce quantity of item
  */
 app.post('/ecommerce/purchase', async (req, res) => {
-  let params = [req.query.productName];
+  let params = [req.query.productId];
   if (!checkValidParams(params)) {
     res.type('text').status(SERVER_ERROR)
       .send(INVALID_PARAMETERS);
   } else {
     try {
       let db = await getDBConnection();
-      let checkQry = 'SELECT name, quantity, price, id FROM product WHERE name = ?;';
-      let updateQry = 'UPDATE product SET quantity = quantity - 1 WHERE name = ?;';
+      let checkQry = 'SELECT name, quantity, price, id FROM product WHERE id = ?;';
+      let updateQry = 'UPDATE product SET quantity = quantity - 1 WHERE id = ?;';
 
-      let checkRes = await db.all(checkQry, req.query.productName);
+      let checkRes = await db.all(checkQry, req.query.productId);
       if (checkRes[0] === undefined) {
         res.type('text').status(CLIENT_ERROR)
           .send('Yikes. Product Name doesn\'t exist!')
@@ -150,14 +156,13 @@ app.post('/ecommerce/purchase', async (req, res) => {
         } else {
 
           checkRes[0]['quantity'] -= 1;
-          await db.run(updateQry, req.query.productName);
+          await db.run(updateQry, req.query.productId);
           res.type('json').send(checkRes[0]);
         }
       }
 
       await db.close();
     } catch (error) {
-      console.log(error);
       res.status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG)
     }
@@ -180,7 +185,7 @@ app.post('/ecommerce/cart', async (req, res) => {
       let validProductQry = 'Select id FROM product WHERE id = ?;';
       let cartId = await db.all(validUserQry, req.body.username);
       let validProduct = await db.all(validProductQry, req.body.productId);
-      params.insert(2, cartId[0]['cartId']);
+      params.splice(2, 0, cartId[0]['cartId']);
       if (cartId === undefined || validProduct === undefined) {
         res.status(CLIENT_ERROR)
           .send('username doesnt exist.');
@@ -188,11 +193,11 @@ app.post('/ecommerce/cart', async (req, res) => {
         let insertQry = 'INSERT INTO shopping (username, productId, cartId, quantity) ' +
                         'VALUES (?, ?, ?, ?);';
         let retrievedData = await db.run(insertQry, params);
-        console.log('lastid:' + retrievedData.lastID);
         res.send((retrievedData.lastID).toString());
       }
       await db.close();
     } catch(error) {
+      console.log(error)
       res.status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG);
     }
@@ -211,7 +216,7 @@ app.post('/ecommerce/cart/update', async (req, res) => {
   } else {
     try {
       let db = await getDBConnection();
-      let isUsernameInDatabase = checkUsernameInDatabase(req.query.username);
+      let isUsernameInDatabase = await checkUsernameInDatabase(req.query.username);
       if (isUsernameInDatabase === -1) {
         res.status(CLIENT_ERROR)
           .send('Yikes. Username doesn\'t exist!');
@@ -237,13 +242,13 @@ app.post('/ecommerce/cart/update', async (req, res) => {
  */
 app.get('/ecommerce/history', async (req, res) => {
   let params = [req.query.username];
-  if (!checkValidParams[params]) {
+  if (!checkValidParams(params)) {
     res.type('text').status(CLIENT_ERROR)
       .send(INVALID_PARAMETERS);
   } else {
     try {
       let db = await getDBConnection();
-      let isUsernameInDatabase = checkUsernameInDatabase(req.query.username);
+      let isUsernameInDatabase = await checkUsernameInDatabase(req.query.username);
       if (isUsernameInDatabase === -1) {
         res.type('text').status(CLIENT_ERROR)
           .send('Yikes. Username doesn\'t exist!');
@@ -258,6 +263,7 @@ app.get('/ecommerce/history', async (req, res) => {
       }
       await db.close();
     } catch (error) {
+      console.log(error)
       res.type('text').status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG);
     }
@@ -266,6 +272,7 @@ app.get('/ecommerce/history', async (req, res) => {
 
 app.post('/ecommerce/feedback/new', async (req, res) => {
   let params = [req.body.productId, req.body.username, req.body.rating, req.body.review];
+  console.log(params);
   if (!checkValidParams(params)) {
     res.status(CLIENT_ERROR)
       .send(INVALID_PARAMETERS);
@@ -283,13 +290,11 @@ app.post('/ecommerce/feedback/new', async (req, res) => {
         res.type('text').status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG);
       } else {
-        console.log(isUsernameInDatabase)
         res.type('text').status(CLIENT_ERROR)
           .send('Yikes. Username and/or Product ID doesn\'t exist!');
       }
       await db.close();
     } catch (error) {
-      console.log(error);
       res.type('text').status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG);
     }
@@ -313,13 +318,11 @@ app.get('/ecommerce/feedback', async (req, res) => {
       } else if (isProductInDatabase === -1) {
         res.type('text').send('Product doesn\'t exist in Database');
       } else {
-        console.log('here');
         res.status(SERVER_ERROR)
           .send(SERVER_ERROR_MSG);
       }
       await db.close();
     } catch {
-      console.log(error);
       res.status(SERVER_ERROR)
         .send(SERVER_ERROR_MSG);
     }
@@ -376,8 +379,7 @@ async function checkProductInDatabase(product) {
  */
  async function getDBConnection() {
   const db = await sqlite.open({
-    filename: 'semi-final.db',
-    // filename: 'max-approach-laptop.db',
+    filename: 'ecommerce.db',
     driver: sqlite3.Database
   });
 
