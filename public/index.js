@@ -517,7 +517,7 @@
   /**
    * Generate all the articles for each product
    * @param {object} product - the product server data for a product
-   * @returns the product article
+   * @returns {object} - the product article
    */
   function generateProductArticle(product) {
     let name = product['name'];
@@ -700,7 +700,7 @@
       loginFailureMsg.textContent = 'Log in to add items to the cart!';
       qs('main').appendChild(loginFailureMsg);
       setTimeout(() => {
-        loginFailureMsg.remove()
+        loginFailureMsg.remove();
         id('home-view').classList.remove('hidden');
       }, ONESEC);
     } else {
@@ -719,10 +719,10 @@
         .then(statusCheck)
         .then(res => res.json())
         .then(res => {
-          if (event.target.parentElement.id == 'item-section') {
+          if (event.target.parentElement.id === 'item-section') {
             event.target.parentElement.childNodes[2].textContent = 'Quantity: ' + res['quantity'];
           }
-          if (res['quantity'] == 0) {
+          if (res['quantity'] === 0) {
             event.target.disabled = true;
           }
           if (cart[res['name']] === undefined) {
