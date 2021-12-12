@@ -101,7 +101,7 @@ app.post('/ecommerce/authentication', async (req, res) => {
  * Endpoint for when a new user signs up, add their data into the database
  */
 app.post('/ecommerce/user/new', async (req, res) => {
-  let params = [req.body.username, req.body.password];
+  let params = [req.body.username, req.body.password, req.body.email];
   res.type('text');
   if (!checkValidParams(params)) {
     res.status(CLIENT_ERROR)
@@ -117,7 +117,7 @@ app.post('/ecommerce/user/new', async (req, res) => {
         res.status(SERVER_ERROR)
           .send('User already exists!');
       } else {
-        let qry = 'INSERT INTO user (username, password, cartId) VALUES (?, ?, 0);';
+        let qry = 'INSERT INTO user (username, password, cartId, email) VALUES (?, ?, 0, ?);';
         await db.run(qry, params);
         res.send('User added!')
         await db.close();
