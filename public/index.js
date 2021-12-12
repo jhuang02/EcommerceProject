@@ -15,6 +15,7 @@
   let USER;
   let PASS;
   let PRODUCT_ID;
+  const ONESEC = 1000;
 
   /**
    * Loading UI and listeners once page finishes loading
@@ -22,49 +23,55 @@
   function init() {
     fetchAllProducts();
     changeView('home-view');
-    buttonBehavior();
+    buttonBehaviorOne();
+    buttonBehaviorTwo();
   }
 
   /**
    * Link buttons with their respective behavior functions
    */
-  function buttonBehavior() {
+  function buttonBehaviorOne() {
     let viewAccountBtn = id('account-btn');
     let searchBtn = id('search-btn');
     let searchInput = id('search-term');
-    let homeBtn = id('home-btn');
-    let homeToggleBtn = id('change-home-view-btn');
     let searchToggleBtn = id('change-search-view-btn');
     let cartBtn = id('cart-btn');
     let submitAccountBtn = id('submit-account-btn');
     let signUpBtn = id('signup');
     let toggleSaveBtn = id('save-user-toggle');
-    let historyBtn = id('history-btn');
-    let feedbackForm = id('feedback-form');
     let backFromItemViewBtn = id('back-btn');
-
     let logoutBtn = id('logout-btn');
-    let homeFilter = id('home-filter');
-    let searchFilter = id('search-filter');
     viewAccountBtn.addEventListener('click', viewAccount);
     searchInput.addEventListener('input', checkSearchEnable);
     searchBtn.addEventListener('click', fetchSearch);
     submitAccountBtn.addEventListener('click', authenticate);
     signUpBtn.addEventListener('click', signup);
     toggleSaveBtn.addEventListener('click', toggleSaveUser);
-    homeBtn.addEventListener('click', () => changeView('home-view'));
-    homeToggleBtn.addEventListener('click', toggleProductView);
     searchToggleBtn.addEventListener('click', toggleProductView);
     cartBtn.addEventListener('click', viewCart);
-    historyBtn.addEventListener('click', viewHistory);
-    feedbackForm.addEventListener('submit', submitFeedback);
     logoutBtn.addEventListener('click', logout);
-    homeFilter.addEventListener('change', () => filterView('home-filter'));
-    searchFilter.addEventListener('change', () => filterView('search-filter'));
     backFromItemViewBtn.addEventListener('click', () => {
       id('item-section').innerHTML = '';
       changeView('home-view');
     });
+  }
+
+  /**
+   * Link buttons with their respective behavior functions
+   */
+  function buttonBehaviorTwo() {
+    let homeBtn = id('home-btn');
+    let homeToggleBtn = id('change-home-view-btn');
+    let homeFilter = id('home-filter');
+    let searchFilter = id('search-filter');
+    let historyBtn = id('history-btn');
+    let feedbackForm = id('feedback-form');
+    homeBtn.addEventListener('click', () => changeView('home-view'));
+    homeToggleBtn.addEventListener('click', toggleProductView);
+    homeFilter.addEventListener('change', () => filterView('home-filter'));
+    searchFilter.addEventListener('change', () => filterView('search-filter'));
+    historyBtn.addEventListener('click', viewHistory);
+    feedbackForm.addEventListener('submit', submitFeedback);
   }
 
   function submitFeedback(event) {
@@ -106,7 +113,8 @@
 
     if (filter !== 'all') {
       for (let i = 0; i < productArray.length; i++) {
-        if (productArray[i].lastChild.previousSibling.previousSibling.textContent !== capitalize(filter)) {
+        if (productArray[i].lastChild.previousSibling.previousSibling.textContent
+          !== capitalize(filter)) {
           productArray[i].classList.add('hidden');
         }
       }
@@ -124,7 +132,7 @@
     document.getElementById("login-password").value = '';
     window.localStorage.removeItem('user');
     id('save-user-toggle').checked = false;
-    changeView('login-view')
+    changeView('login-view');
   }
 
   /**
@@ -134,7 +142,7 @@
     if (!USER || !PASS) {
       changeView('history-not-logged-view');
     } else {
-        changeView('history-view');
+      changeView('history-view');
       fetch('/ecommerce/history?username=' + USER)
         .then(statusCheck)
         .then(res => res.json())
@@ -145,6 +153,7 @@
 
   /**
    * Change to the history view if logged in and fetch user order history
+   * @param {object} res - the data to populate the history view with
    */
   function populateHistoryView(res) {
     let history = id('history-view');
@@ -166,7 +175,19 @@
         orderElement.appendChild(cartIdElement);
         cartId = item['cartId'];
       }
-      let itemElement = gen('section');
+      createOrderElement(item, orderElement);
+    });
+
+    history.appendChild(orderElement);
+  }
+
+  /**
+   * Finish appending and creating order element
+   * @param {object} item - the item data to use in the order element
+   * @param {object} orderElement - the element to finish creating
+   */
+  function createOrderElement(item, orderElement) {
+    let itemElement = gen('section');
       itemElement.classList.add('history-item');
       let itemNameElement = gen('p');
       let itemQuantityElement = gen('p');
@@ -176,9 +197,6 @@
       itemElement.appendChild(itemQuantityElement);
       itemElement.classList.add('clothing-item');
       orderElement.appendChild(itemElement);
-    });
-
-    history.appendChild(orderElement);
   }
 
   /**
@@ -195,7 +213,7 @@
 
   /**
    * Process the server response for products matching the search term
-   * * @param {object} response - the server response for products
+   * * @param {object} resp - the server response for products
    */
   function processSearch(resp) {
     let searchTerm = id('search-term');
@@ -207,7 +225,6 @@
     }
 
     resp = resp.products;
-    console.log(resp);
     for (let i = 0; i < resp.length; i++) {
       let productArticle = generateProductArticle(resp[i]);
       results.appendChild(productArticle);
@@ -231,15 +248,15 @@
       .then(res => res.text())
       .then(res => {
         username.value = '';
-        password.value = ''
+        password.value = '';
         id('login-view').classList.add('hidden');
         let createdAccountMsg = gen('p');
         qs('main').appendChild(createdAccountMsg);
         createdAccountMsg.textContent = res;
         setTimeout(() => {
           id('login-view').classList.remove('hidden');
-          createdAccountMsg.remove()
-        }, 1000)
+          createdAccountMsg.remove();
+        }, ONESEC)
       })
       .catch(handleError);
   }
@@ -545,6 +562,7 @@
 
     itemView.appendChild(nameElement);
     itemView.appendChild(categoryElement);
+    itemView.appendChild(quantityElement);
     itemView.appendChild(priceElement);
     itemView.appendChild(buyBtn);
 
