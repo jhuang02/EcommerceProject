@@ -276,6 +276,9 @@
     }
   }
 
+  /**
+   * Append data to cart view
+   */
   function appendCart() {
     changeView('cart-view');
     let cartView = id('cart-view');
@@ -306,19 +309,23 @@
       article.classList.add('clothing-item');
       cartView.appendChild(article);
     });
-    finishCartView(totalCost)
+    finishCartView(totalCost, cartView)
   }
 
-function finishCartView(totalCost) {
-  let priceElement = gen('p');
-  let checkoutBtn = gen('button');
-  checkoutBtn.textContent = 'Checkout';
-  checkoutBtn.addEventListener('click', checkout);
-  priceElement.textContent = 'Total Cost: $' + totalCost;
-  cartView.append(priceElement);
-  cartView.appendChild(checkoutBtn);
-}
-
+  /**
+   * Finish appending info to cart view
+   * @param {string} totalCost - total cost in the cart
+   * @param {object} cartView - cart view element
+   */
+  function finishCartView(totalCost, cartView) {
+    let priceElement = gen('p');
+    let checkoutBtn = gen('button');
+    checkoutBtn.textContent = 'Checkout';
+    checkoutBtn.addEventListener('click', checkout);
+    priceElement.textContent = 'Total Cost: $' + totalCost;
+    cartView.append(priceElement);
+    cartView.appendChild(checkoutBtn);
+  }
 
   /**
    * User checksout their items, adding it to their order history and removing the item from the
@@ -334,11 +341,15 @@ function finishCartView(totalCost) {
       params.append('quantity', cart[item]['quantity']);
       fetch('/ecommerce/cart', {method: 'POST', body: params})
         .then(statusCheck)
+        .then(processCart)
         .catch(handleError);
     });
   }
 
-  function processCart(resp) {
+  /**
+   * Process returned server data about what's in the cart
+   */
+  function processCart() {
     fetch('/ecommerce/cart/update?username=' + USER, {method: "POST"})
       .then(statusCheck)
       .then(res => res.text())
@@ -573,11 +584,11 @@ function finishCartView(totalCost) {
     buyBtn.textContent = 'Add to Cart!';
 
     buyBtn.addEventListener('click', purchaseItem);
-    if (resp['quantity'] === 0) {
+    if (res['quantity'] === 0) {
       buyBtn.disabled = true;
     }
-    priceElement.textContent = 'Price: ' + resp['price'];
-    fetch('/ecommerce/feedback?productId=' + resp['id'])
+    priceElement.textContent = 'Price: ' + res['price'];
+    fetch('/ecommerce/feedback?productId=' + res['id'])
       .then(statusCheck)
       .then(res => res.json())
       .then(res => {
@@ -668,7 +679,12 @@ function finishCartView(totalCost) {
         id('home-view').classList.remove('hidden');
       }, ONESEC);
     } else {
-      let cart = JSON.parse(window.localStorage.getItem(USER));
+      processItem(event);
+    }
+  }
+
+  function processItem(event) {
+    let cart = JSON.parse(window.localStorage.getItem(USER));
       let productId = event.target.parentElement.firstElementChild.id;
       fetch('/ecommerce/purchase?productId=' + productId, {method: 'POST'})
         .then(statusCheck)
@@ -687,7 +703,6 @@ function finishCartView(totalCost) {
           window.localStorage.setItem(USER, JSON.stringify(cart));
         })
         .catch(handleError);
-    }
   }
 
   /**
